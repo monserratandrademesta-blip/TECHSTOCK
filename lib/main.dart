@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'empleado_inicio.dart';
+import 'admin_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'TechStock',
-      home: const EmpleadoInicioScreen(),
+      home: const AdminScreen(),
     );
   }
 }

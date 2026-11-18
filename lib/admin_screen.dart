@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AdminScreen extends StatelessWidget {
-  const AdminScreen({Key? key}) : super(key: key);
+  const AdminScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -14,13 +14,13 @@ class AdminScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Row(
-          children: [
-            const Text(
-              'Detalle De Producto',
-              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
-            ),
-          ],
+        title: const Text(
+          'Detalle De Producto',
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
         ),
         actions: [
           Padding(
@@ -38,7 +38,8 @@ class AdminScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const SizedBox(height: 10),
-            // Logo / Símbolo de marca
+
+            // Logo de TechStock
             Container(
               width: 80,
               height: 80,
@@ -47,29 +48,45 @@ class AdminScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
                 ],
               ),
               child: const Center(
-                child: Icon(Icons.inventory_2_outlined, size: 40, color: Color(0xFF00288E)),
+                child: Icon(
+                  Icons.inventory_2_outlined,
+                  size: 40,
+                  color: Color(0xFF00288E),
+                ),
               ),
             ),
+
             const SizedBox(height: 12),
+
             const Text(
               'TechStock',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF131B2E)),
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF131B2E),
+              ),
             ),
+
             const SizedBox(height: 4),
+
             const Text(
               'Control Inteligente de Inventario Tech',
-              style: TextStyle(fontSize: 14, color: Color(0xFF757684)),
+              style: TextStyle(
+                fontSize: 14,
+                color: Color(0xFF757684),
+              ),
             ),
+
             const SizedBox(height: 24),
 
-            // Selector de rol (Administrador / Empleado)
+            // Selector de roles
             Container(
               decoration: BoxDecoration(
                 color: const Color(0xFFEAEDFF),
@@ -86,36 +103,50 @@ class AdminScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withValues(alpha: 0.1),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),
                         ],
                       ),
-                      child: Row(
+                      child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(Icons.admin_panel_settings, color: Colors.white, size: 20),
+                        children: [
+                          Icon(
+                            Icons.admin_panel_settings,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                           SizedBox(width: 8),
                           Text(
                             'Administrador',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ],
                       ),
                     ),
                   ),
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                  const Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(Icons.person_outline, color: Color(0xFF444653), size: 20),
+                        children: [
+                          Icon(
+                            Icons.person_outline,
+                            color: Color(0xFF444653),
+                            size: 20,
+                          ),
                           SizedBox(width: 8),
                           Text(
                             'Empleado',
-                            style: TextStyle(color: Color(0xFF444653), fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              color: Color(0xFF444653),
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ],
                       ),
@@ -124,9 +155,10 @@ class AdminScreen extends StatelessWidget {
                 ],
               ),
             ),
+
             const SizedBox(height: 24),
 
-            // Formulario de Acceso
+            // Formulario de acceso
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -134,7 +166,7 @@ class AdminScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
+                    color: Colors.black.withValues(alpha: 0.03),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -145,18 +177,31 @@ class AdminScreen extends StatelessWidget {
                 children: [
                   const Text(
                     'Correo corporativo / Usuario',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF444653)),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF444653),
+                    ),
                   ),
+
                   const SizedBox(height: 8),
+
                   Container(
                     decoration: BoxDecoration(
                       color: const Color(0xFFF2F3FF),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    child: Row(
-                      children: const [
-                        Icon(Icons.person_outline, color: Color(0xFF757684), size: 20),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(
+                          Icons.person_outline,
+                          color: Color(0xFF757684),
+                          size: 20,
+                        ),
                         SizedBox(width: 8),
                         Expanded(
                           child: TextField(
@@ -164,27 +209,45 @@ class AdminScreen extends StatelessWidget {
                               border: InputBorder.none,
                               hintText: 'admin@techstock.com',
                             ),
-                            style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF131B2E)),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF131B2E),
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
+
                   const SizedBox(height: 16),
+
                   const Text(
                     'Contraseña',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF444653)),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF444653),
+                    ),
                   ),
+
                   const SizedBox(height: 8),
+
                   Container(
                     decoration: BoxDecoration(
                       color: const Color(0xFFF2F3FF),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    child: Row(
-                      children: const [
-                        Icon(Icons.lock_outline, color: Color(0xFF757684), size: 20),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(
+                          Icons.lock_outline,
+                          color: Color(0xFF757684),
+                          size: 20,
+                        ),
                         SizedBox(width: 8),
                         Expanded(
                           child: TextField(
@@ -193,14 +256,23 @@ class AdminScreen extends StatelessWidget {
                               border: InputBorder.none,
                               hintText: '••••••••',
                             ),
-                            style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF131B2E)),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF131B2E),
+                            ),
                           ),
                         ),
-                        Icon(Icons.visibility_outlined, color: Color(0xFF757684), size: 20),
+                        Icon(
+                          Icons.visibility_outlined,
+                          color: Color(0xFF757684),
+                          size: 20,
+                        ),
                       ],
                     ),
                   ),
+
                   const SizedBox(height: 12),
+
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -211,16 +283,32 @@ class AdminScreen extends StatelessWidget {
                             onChanged: (val) {},
                             activeColor: const Color(0xFF0051D5),
                           ),
-                          const Text('Recordar sesión', style: TextStyle(fontSize: 12, color: Color(0xFF444653))),
+                          const Text(
+                            'Recordar sesión',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF444653),
+                            ),
+                          ),
                         ],
                       ),
-                      TextButton(
-                        onPressed: () {},
-                        child: const Text('¿Olvidaste tu contraseña?', style: TextStyle(fontSize: 12, color: Color(0xFF0051D5))),
+                      Flexible(
+                        child: TextButton(
+                          onPressed: () {},
+                          child: const Text(
+                            '¿Olvidaste tu contraseña?',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF0051D5),
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
+
                   const SizedBox(height: 16),
+
                   SizedBox(
                     width: double.infinity,
                     height: 50,
@@ -232,12 +320,24 @@ class AdminScreen extends StatelessWidget {
                         ),
                       ),
                       onPressed: () {},
-                      child: Row(
+                      child: const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Text('Iniciar Sesión como Administrador', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        children: [
+                          Flexible(
+                            child: Text(
+                              'Iniciar Sesión como Administrador',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
                           SizedBox(width: 8),
-                          Icon(Icons.arrow_forward, color: Colors.white, size: 18),
+                          Icon(
+                            Icons.arrow_forward,
+                            color: Colors.white,
+                            size: 18,
+                          ),
                         ],
                       ),
                     ),
@@ -245,10 +345,16 @@ class AdminScreen extends StatelessWidget {
                 ],
               ),
             ),
+
             const SizedBox(height: 24),
+
             const Text(
               'Nodo Central de Logística • Región Sur-Este',
-              style: TextStyle(fontSize: 12, color: Color(0xFF757684)),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                color: Color(0xFF757684),
+              ),
             ),
           ],
         ),
