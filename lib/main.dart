@@ -1,19 +1,31 @@
 import 'package:flutter/material.dart';
-import 'admin_screen.dart';
+import 'login.dart';
 
 void main() {
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const TechStockApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class TechStockApp extends StatelessWidget {
+  const TechStockApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'TechStock',
-      home: const AdminScreen(),
+      theme: ThemeData(
+        useMaterial3: true,
+        fontFamily: 'Plus Jakarta Sans',
+        scaffoldBackgroundColor: const Color(0xFFFAF8FF),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF00288E),
+          primary: const Color(0xFF00288E),
+          secondary: const Color(0xFF0051D5),
+          surface: Colors.white,
+        ),
+      ),
+      home: const LoginScreen(),
     );
   }
 }
