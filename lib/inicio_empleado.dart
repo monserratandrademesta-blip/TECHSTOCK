@@ -1,4 +1,9 @@
+
 import 'package:flutter/material.dart';
+import 'inventario_empleado.dart';
+import 'registrar_salida.dart';
+import 'miturno.dart';
+import 'movimientos.dart';
 
 const Color azulEmpleado = Color(0xFF00288E);
 const Color fondoEmpleado = Color(0xFFFAF8FF);
@@ -28,8 +33,17 @@ class InicioEmpleadoScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.notifications_none, color: azulEmpleado),
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Tienes 3 alertas de stock bajo'),
+                ),
+              );
+            },
+            icon: const Icon(
+              Icons.notifications_none,
+              color: azulEmpleado,
+            ),
           ),
           const SizedBox(width: 8),
         ],
@@ -54,6 +68,8 @@ class InicioEmpleadoScreen extends StatelessWidget {
                 style: TextStyle(color: Colors.black54, fontSize: 14),
               ),
               const SizedBox(height: 16),
+
+              // TURNO ACTIVO
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(15),
@@ -88,12 +104,16 @@ class InicioEmpleadoScreen extends StatelessWidget {
                   ],
                 ),
               ),
+
               const SizedBox(height: 22),
+
+              // ACCIONES RÁPIDAS
               const Text(
                 'Acciones rápidas',
                 style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
+
               Row(
                 children: [
                   Expanded(
@@ -102,7 +122,13 @@ class InicioEmpleadoScreen extends StatelessWidget {
                       titulo: 'Registrar salida',
                       color: azulEmpleado,
                       alPresionar: () {
-                        Navigator.pushNamed(context, '/registrar-salida');
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const RegistrarSalidaScreen(),
+                          ),
+                        );
                       },
                     ),
                   ),
@@ -113,7 +139,13 @@ class InicioEmpleadoScreen extends StatelessWidget {
                       titulo: 'Consultar stock',
                       color: const Color(0xFF00856A),
                       alPresionar: () {
-                        Navigator.pushNamed(context, '/inventario-empleado');
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                InventarioEmpleadoScreen(),
+                          ),
+                        );
                       },
                     ),
                   ),
@@ -124,18 +156,27 @@ class InicioEmpleadoScreen extends StatelessWidget {
                       titulo: 'Mi turno',
                       color: const Color(0xFF8B5CF6),
                       alPresionar: () {
-                        Navigator.pushNamed(context, '/mi-turno');
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const MiTurnoScreen(),
+                          ),
+                        );
                       },
                     ),
                   ),
                 ],
               ),
+
               const SizedBox(height: 24),
+
+              // RESUMEN
               const Text(
                 'Resumen de hoy',
                 style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
+
               const Row(
                 children: [
                   Expanded(
@@ -157,7 +198,9 @@ class InicioEmpleadoScreen extends StatelessWidget {
                   ),
                 ],
               ),
+
               const SizedBox(height: 12),
+
               const Row(
                 children: [
                   Expanded(
@@ -179,36 +222,44 @@ class InicioEmpleadoScreen extends StatelessWidget {
                   ),
                 ],
               ),
+
               const SizedBox(height: 24),
+
+              // ALERTAS
               const Text(
                 'Alertas de inventario',
                 style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
-              _AlertaEmpleado(
+
+              const _AlertaEmpleado(
                 nombre: 'iPhone 15 Pro',
                 detalle: 'Solo quedan 2 unidades',
                 cantidad: '2',
                 color: Colors.red,
               ),
-              _AlertaEmpleado(
+              const _AlertaEmpleado(
                 nombre: 'MacBook Air M2',
                 detalle: 'Solo queda 1 unidad',
                 cantidad: '1',
                 color: Colors.red,
               ),
-              _AlertaEmpleado(
+              const _AlertaEmpleado(
                 nombre: 'Sony WH-1000XM5',
                 detalle: 'Quedan 3 unidades',
                 cantidad: '3',
                 color: Colors.orange,
               ),
+
               const SizedBox(height: 24),
+
+              // MOVIMIENTOS RECIENTES
               const Text(
                 'Movimientos recientes',
                 style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
+
               const _MovimientoEmpleado(
                 nombre: 'Venta de iPad',
                 detalle: 'Ticket TCK-1092',
@@ -241,11 +292,14 @@ class InicioEmpleadoScreen extends StatelessWidget {
                 cantidad: '+5',
                 color: Colors.green,
               ),
+
               const SizedBox(height: 20),
             ],
           ),
         ),
       ),
+
+      // MENÚ INFERIOR
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
         selectedItemColor: azulEmpleado,
@@ -271,17 +325,34 @@ class InicioEmpleadoScreen extends StatelessWidget {
         ],
         onTap: (index) {
           if (index == 1) {
-            Navigator.pushNamed(context, '/inventario-empleado');
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => InventarioEmpleadoScreen(),
+              ),
+            );
           } else if (index == 2) {
-            Navigator.pushNamed(context, '/registrar-salida');
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => MovimientosScreen(),
+              ),
+            );
           } else if (index == 3) {
-            Navigator.pushNamed(context, '/mi-turno');
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const MiTurnoScreen(),
+              ),
+            );
           }
         },
       ),
     );
   }
 }
+
+// BOTONES DE ACCIONES RÁPIDAS
 
 class _AccionEmpleado extends StatelessWidget {
   final IconData icono;
@@ -329,6 +400,8 @@ class _AccionEmpleado extends StatelessWidget {
   }
 }
 
+// INDICADORES
+
 class _IndicadorEmpleado extends StatelessWidget {
   final String titulo;
   final String valor;
@@ -363,16 +436,21 @@ class _IndicadorEmpleado extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 5),
           Text(
             titulo,
-            style: const TextStyle(fontSize: 12, color: Colors.black54),
+            style: const TextStyle(
+              fontSize: 12,
+              color: Colors.black54,
+            ),
           ),
         ],
       ),
     );
   }
 }
+
+// ALERTAS DE INVENTARIO
 
 class _AlertaEmpleado extends StatelessWidget {
   final String nombre;
@@ -390,23 +468,36 @@ class _AlertaEmpleado extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 9),
-      padding: const EdgeInsets.all(13),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(13),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: Colors.black12),
       ),
       child: Row(
         children: [
-          Icon(Icons.warning_amber_rounded, color: color, size: 25),
+          Icon(Icons.warning_amber_rounded, color: color, size: 27),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(nombre, style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text(detalle, style: const TextStyle(color: Colors.black54, fontSize: 12)),
+                Text(
+                  nombre,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  detalle,
+                  style: const TextStyle(
+                    color: Colors.black54,
+                    fontSize: 12,
+                  ),
+                ),
               ],
             ),
           ),
@@ -415,7 +506,7 @@ class _AlertaEmpleado extends StatelessWidget {
             style: TextStyle(
               color: color,
               fontWeight: FontWeight.bold,
-              fontSize: 18,
+              fontSize: 19,
             ),
           ),
         ],
@@ -423,6 +514,8 @@ class _AlertaEmpleado extends StatelessWidget {
     );
   }
 }
+
+// MOVIMIENTOS RECIENTES
 
 class _MovimientoEmpleado extends StatelessWidget {
   final String nombre;
@@ -444,17 +537,17 @@ class _MovimientoEmpleado extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 9),
+      margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(13),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(13),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: Colors.black12),
       ),
       child: Row(
         children: [
           CircleAvatar(
-            backgroundColor: color.withValues(alpha: 0.10),
+            backgroundColor: color.withOpacity(0.10),
             child: Icon(icono, color: color, size: 21),
           ),
           const SizedBox(width: 12),
@@ -462,15 +555,43 @@ class _MovimientoEmpleado extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(nombre, style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text(detalle, style: const TextStyle(color: Colors.black54, fontSize: 12)),
-                Text(hora, style: const TextStyle(color: Colors.black45, fontSize: 11)),
+                Text(
+                  nombre,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  detalle,
+                  style: const TextStyle(
+                    color: Colors.black54,
+                    fontSize: 12,
+                  ),
+                ),
               ],
             ),
           ),
-          Text(
-            cantidad,
-            style: TextStyle(color: color, fontWeight: FontWeight.bold),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                cantidad,
+                style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                hora,
+                style: const TextStyle(
+                  color: Colors.black45,
+                  fontSize: 11,
+                ),
+              ),
+            ],
           ),
         ],
       ),

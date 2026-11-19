@@ -1,4 +1,8 @@
+
 import 'package:flutter/material.dart';
+import 'inicio_empleado.dart';
+import 'movimientos.dart';
+import 'miturno.dart';
 
 class InventarioEmpleadoScreen extends StatefulWidget {
   const InventarioEmpleadoScreen({super.key});
@@ -8,8 +12,7 @@ class InventarioEmpleadoScreen extends StatefulWidget {
       _InventarioEmpleadoScreenState();
 }
 
-class _InventarioEmpleadoScreenState
-    extends State<InventarioEmpleadoScreen> {
+class _InventarioEmpleadoScreenState extends State<InventarioEmpleadoScreen> {
   final TextEditingController buscador = TextEditingController();
 
   String categoriaSeleccionada = 'Todos';
@@ -170,7 +173,9 @@ class _InventarioEmpleadoScreenState
             ),
             Expanded(
               child: productosFiltrados.isEmpty
-                  ? const Center(child: Text('No se encontraron productos'))
+                  ? const Center(
+                      child: Text('No se encontraron productos'),
+                    )
                   : ListView.builder(
                       padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
                       itemCount: productosFiltrados.length,
@@ -188,7 +193,9 @@ class _InventarioEmpleadoScreenState
         foregroundColor: Colors.white,
         onPressed: () {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Escáner de código próximamente')),
+            const SnackBar(
+              content: Text('Escáner de código próximamente'),
+            ),
           );
         },
         child: const Icon(Icons.qr_code_scanner),
@@ -218,11 +225,26 @@ class _InventarioEmpleadoScreenState
         ],
         onTap: (index) {
           if (index == 0) {
-            Navigator.pushNamed(context, '/inicio-empleado');
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const InicioEmpleadoScreen(),
+              ),
+            );
           } else if (index == 2) {
-            Navigator.pushNamed(context, '/registrar-salida');
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const MovimientosScreen(),
+              ),
+            );
           } else if (index == 3) {
-            Navigator.pushNamed(context, '/mi-turno');
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const MiTurnoScreen(),
+              ),
+            );
           }
         },
       ),
@@ -324,8 +346,11 @@ class _InventarioEmpleadoScreenState
               const Divider(height: 22),
               Row(
                 children: [
-                  const Icon(Icons.location_on_outlined,
-                      size: 17, color: Colors.black54),
+                  const Icon(
+                    Icons.location_on_outlined,
+                    size: 17,
+                    color: Colors.black54,
+                  ),
                   const SizedBox(width: 5),
                   Expanded(
                     child: Text(
@@ -336,8 +361,11 @@ class _InventarioEmpleadoScreenState
                       ),
                     ),
                   ),
-                  const Icon(Icons.warehouse_outlined,
-                      size: 17, color: Colors.black54),
+                  const Icon(
+                    Icons.warehouse_outlined,
+                    size: 17,
+                    color: Colors.black54,
+                  ),
                   const SizedBox(width: 5),
                   Text(
                     'Bodega: ${producto['bodega']}',
@@ -352,7 +380,11 @@ class _InventarioEmpleadoScreenState
                 const SizedBox(height: 10),
                 const Row(
                   children: [
-                    Icon(Icons.warning_amber, color: Colors.red, size: 16),
+                    Icon(
+                      Icons.warning_amber,
+                      color: Colors.red,
+                      size: 16,
+                    ),
                     SizedBox(width: 5),
                     Text(
                       'Existencia baja',
@@ -378,7 +410,9 @@ class _InventarioEmpleadoScreenState
       isScrollControlled: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(24),
+        ),
       ),
       builder: (context) {
         return Padding(
@@ -410,9 +444,15 @@ class _InventarioEmpleadoScreenState
                 Text('SKU: ${producto['sku']}'),
                 const SizedBox(height: 16),
                 _datoDetalle('Precio', '\$${producto['precio']}'),
-                _datoDetalle('Existencias en tienda', '${producto['stock']}'),
+                _datoDetalle(
+                  'Existencias en tienda',
+                  '${producto['stock']}',
+                ),
                 _datoDetalle('Ubicación', producto['ubicacion']),
-                _datoDetalle('Existencias en bodega', '${producto['bodega']}'),
+                _datoDetalle(
+                  'Existencias en bodega',
+                  '${producto['bodega']}',
+                ),
                 const SizedBox(height: 18),
                 SizedBox(
                   width: double.infinity,
@@ -424,7 +464,12 @@ class _InventarioEmpleadoScreenState
                     ),
                     onPressed: () {
                       Navigator.pop(context);
-                      Navigator.pushNamed(context, '/registrar-salida');
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MovimientosScreen(),
+                        ),
+                      );
                     },
                     icon: const Icon(Icons.point_of_sale),
                     label: const Text('Registrar venta'),
@@ -444,7 +489,10 @@ class _InventarioEmpleadoScreenState
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(titulo, style: const TextStyle(color: Colors.black54)),
+          Text(
+            titulo,
+            style: const TextStyle(color: Colors.black54),
+          ),
           Flexible(
             child: Text(
               valor,
