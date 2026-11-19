@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
+import 'inventario.dart';
+import 'inicio.dart';
+import 'historial.dart';
 
 class MovimientosScreen extends StatefulWidget {
-  const MovimientosScreen({super.key});
+  /// Nombre de un producto para preseleccionarlo al entrar desde
+  /// el botón "Registrar movimiento" de Inventario. Si no se manda
+  /// (o no coincide con ninguno), se usa el primer producto de la lista.
+  final String? productoInicial;
+
+  const MovimientosScreen({super.key, this.productoInicial});
 
   @override
   State<MovimientosScreen> createState() => _MovimientosScreenState();
@@ -12,12 +20,24 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
   int cantidad = 1;
 
   final referenciaController = TextEditingController();
-  final costoController = TextEditingController(text: '1199');
+  final costoController = TextEditingController();
   final notasController = TextEditingController();
 
-  String producto = 'iPhone 15 Pro Max 256GB';
+  late Producto productoSeleccionado;
   String proveedor = 'Apple Direct';
-  final int stockActual = 14;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final productos = InventarioRepositorio.productos;
+    productoSeleccionado = productos.firstWhere(
+      (p) => p.nombre == widget.productoInicial,
+      orElse: () => productos.first,
+    );
+
+    costoController.text = productoSeleccionado.precio.toStringAsFixed(2);
+  }
 
   @override
   void dispose() {
@@ -31,39 +51,75 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
     return (double.tryParse(costoController.text) ?? 0) * cantidad;
   }
 
+  // BOTÓN "Confirmar entrada" / "Confirmar salida"
   void registrarMovimiento() {
-    if (cantidad < 1) return;
+    if (cantidad < 1) {
+      _mensaje('La cantidad debe ser mayor que cero');
+      return;
+    }
 
-    if (!esEntrada && cantidad > stockActual) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No hay suficiente inventario para esta salida'),
-        ),
-      );
+    if (!esEntrada && cantidad > productoSeleccionado.stock) {
+      _mensaje('No hay suficiente inventario para esta salida');
       return;
     }
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Movimiento registrado'),
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Confirmar movimiento'),
         content: Text(
-          '${esEntrada ? "Entrada" : "Salida"} de $cantidad unidades de $producto.\n'
+          '${esEntrada ? "Entrada" : "Salida"} de $cantidad unidad(es) de '
+          '${productoSeleccionado.nombre}.\n'
           'Total: \$${total.toStringAsFixed(2)}',
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Aceptar'),
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              // Aquí es donde realmente se actualiza el stock
+              // compartido con Inventario (InventarioRepositorio).
+              setState(() {
+                if (esEntrada) {
+                  productoSeleccionado.stock += cantidad;
+                } else {
+                  productoSeleccionado.stock -= cantidad;
+                }
+                cantidad = 1;
+                referenciaController.clear();
+                notasController.clear();
+              });
+
+              Navigator.pop(dialogContext);
+              _mensaje(
+                '${esEntrada ? "Entrada" : "Salida"} registrada. '
+                'Nuevo stock de ${productoSeleccionado.nombre}: '
+                '${productoSeleccionado.stock} unidades',
+              );
+            },
+            child: const Text('Confirmar'),
           ),
         ],
       ),
     );
   }
 
+  void _mensaje(String texto) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(texto)),
+    );
+  }
+
+  void _irA(Widget pantalla) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => pantalla));
+  }
+
   @override
   Widget build(BuildContext context) {
     const azul = Color(0xFF00288E);
+    final productos = InventarioRepositorio.productos;
 
     return Scaffold(
       backgroundColor: const Color(0xFFFAF8FF),
@@ -95,6 +151,7 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
             ),
             const SizedBox(height: 22),
 
+            // BOTONES "Entrada" / "Salida"
             Container(
               padding: const EdgeInsets.all(5),
               decoration: BoxDecoration(
@@ -136,32 +193,27 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
             const SizedBox(height: 24),
             _titulo('Producto seleccionado'),
 
-            DropdownButtonFormField<String>(
-              value: producto,
+            // DROPDOWN de producto -> ahora sí tomado del inventario real
+            DropdownButtonFormField<Producto>(
+              value: productoSeleccionado,
               isExpanded: true,
               decoration: _decoracion('Selecciona un producto'),
-              items: const [
-                DropdownMenuItem(
-                  value: 'iPhone 15 Pro Max 256GB',
-                  child: Text('iPhone 15 Pro Max 256GB'),
-                ),
-                DropdownMenuItem(
-                  value: 'MacBook Air M2',
-                  child: Text('MacBook Air M2'),
-                ),
-                DropdownMenuItem(
-                  value: 'Sony WH-1000XM5',
-                  child: Text('Sony WH-1000XM5'),
-                ),
-                DropdownMenuItem(
-                  value: 'Galaxy S24 Ultra',
-                  child: Text('Galaxy S24 Ultra'),
-                ),
-              ],
-              onChanged: (value) {
-                if (value != null) {
+              items: productos.map((p) {
+                return DropdownMenuItem(
+                  value: p,
+                  child: Text(
+                    p.nombre,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                );
+              }).toList(),
+              onChanged: (valor) {
+                if (valor != null) {
                   setState(() {
-                    producto = value;
+                    productoSeleccionado = valor;
+                    cantidad = 1;
+                    costoController.text =
+                        productoSeleccionado.precio.toStringAsFixed(2);
                   });
                 }
               },
@@ -188,16 +240,18 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    producto,
+                    productoSeleccionado.nombre,
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
                   ),
                   const SizedBox(height: 5),
-                  const Text('SKU: APL-15PM-256'),
+                  Text('SKU: ${productoSeleccionado.sku}'),
                   const SizedBox(height: 5),
-                  Text('Stock actual: $stockActual unidades'),
+                  Text(
+                    'Stock actual: ${productoSeleccionado.stock} unidades',
+                  ),
                 ],
               ),
             ),
@@ -205,6 +259,7 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
             const SizedBox(height: 23),
             _titulo('Cantidad de unidades'),
 
+            // STEPPER de cantidad -> respeta el stock real del producto
             Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: 15,
@@ -238,7 +293,8 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
                   IconButton(
                     onPressed: () {
                       setState(() {
-                        if (esEntrada || cantidad < stockActual) {
+                        if (esEntrada ||
+                            cantidad < productoSeleccionado.stock) {
                           cantidad++;
                         }
                       });
@@ -339,6 +395,21 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      Text(
+                        esEntrada
+                            ? 'Stock después de la entrada'
+                            : 'Stock después de la salida',
+                      ),
+                      Text(
+                        '${esEntrada ? productoSeleccionado.stock + cantidad : productoSeleccionado.stock - cantidad}',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
                       const Text('Total'),
                       Text(
                         '\$${total.toStringAsFixed(2)}',
@@ -376,6 +447,44 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
             const SizedBox(height: 30),
           ],
         ),
+      ),
+      // MENÚ INFERIOR conectado a las demás pantallas del admin
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        currentIndex: 2,
+        selectedItemColor: azul,
+        unselectedItemColor: const Color(0xFF444653),
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard),
+            label: 'Inicio',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.inventory),
+            label: 'Inventario',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.swap_horiz),
+            label: 'Movimientos',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.history),
+            label: 'Historial',
+          ),
+        ],
+        onTap: (index) {
+          switch (index) {
+            case 0:
+              _irA(const InicioScreen());
+              break;
+            case 1:
+              _irA(const InventarioScreen());
+              break;
+            case 3:
+              _irA(const HistorialScreen());
+              break;
+          }
+        },
       ),
     );
   }
