@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'inicio_empleado.dart';
+import 'inventario_empleado.dart';
+import 'miturno.dart';
+
 class RegistrarSalidaScreen extends StatefulWidget {
   const RegistrarSalidaScreen({super.key});
 
@@ -436,6 +440,49 @@ class _RegistrarSalidaScreenState extends State<RegistrarSalidaScreen> {
             ],
           ),
         ),
+      ),
+      // Barra agregada (igual a la de Mi turno) para poder navegar. Bórrala si no la quieres.
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: 2,
+        selectedItemColor: const Color(0xFF00288E),
+        unselectedItemColor: Colors.grey,
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            label: 'Inicio',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.inventory_2_outlined),
+            label: 'Inventario',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.swap_horiz),
+            label: 'Movimientos',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.access_time),
+            label: 'Mi turno',
+          ),
+        ],
+        onTap: (index) {
+          if (index == 0) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => InicioEmpleadoScreen()),
+            );
+          } else if (index == 1) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => InventarioEmpleadoScreen()),
+            );
+          } else if (index == 3) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => MiTurnoScreen()),
+            );
+          }
+        },
       ),
     );
   }

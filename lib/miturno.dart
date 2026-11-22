@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'login.dart';
+import 'inicio_empleado.dart';
+import 'inventario_empleado.dart';
+import 'registrar_salida.dart';
+
 class MiTurnoScreen extends StatelessWidget {
   const MiTurnoScreen({super.key});
 
@@ -270,11 +275,20 @@ class MiTurnoScreen extends StatelessWidget {
         ],
         onTap: (index) {
           if (index == 0) {
-            Navigator.pushNamed(context, '/inicio-empleado');
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => InicioEmpleadoScreen()),
+            );
           } else if (index == 1) {
-            Navigator.pushNamed(context, '/inventario-empleado');
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => InventarioEmpleadoScreen()),
+            );
           } else if (index == 2) {
-            Navigator.pushNamed(context, '/registrar-salida');
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => RegistrarSalidaScreen()),
+            );
           }
         },
       ),
@@ -313,9 +327,9 @@ class MiTurnoScreen extends StatelessWidget {
   }
 
   void _cerrarSesion(BuildContext context) {
-    Navigator.pushNamedAndRemoveUntil(
+    Navigator.pushAndRemoveUntil(
       context,
-      '/',
+      MaterialPageRoute(builder: (_) => LoginScreen()),
       (route) => false,
     );
   }
