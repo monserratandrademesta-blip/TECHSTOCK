@@ -1,15 +1,23 @@
-
 import 'package:flutter/material.dart';
 import 'inventario_empleado.dart';
-import 'registrar_salida.dart';
-import 'miturno.dart';
-import 'movimientos.dart';
+import 'inventario.dart';
+import 'login.dart';
 
 const Color azulEmpleado = Color(0xFF00288E);
 const Color fondoEmpleado = Color(0xFFFAF8FF);
 
 class InicioEmpleadoScreen extends StatelessWidget {
   const InicioEmpleadoScreen({super.key});
+
+  void cerrarSesion(BuildContext context) {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const LoginScreen(),
+      ),
+      (route) => false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,6 +53,14 @@ class InicioEmpleadoScreen extends StatelessWidget {
               color: azulEmpleado,
             ),
           ),
+          IconButton(
+            tooltip: 'Cerrar sesión',
+            onPressed: () => cerrarSesion(context),
+            icon: const Icon(
+              Icons.logout,
+              color: azulEmpleado,
+            ),
+          ),
           const SizedBox(width: 8),
         ],
       ),
@@ -65,11 +81,13 @@ class InicioEmpleadoScreen extends StatelessWidget {
               const SizedBox(height: 5),
               const Text(
                 'Asesora de Ventas · Operador Tienda',
-                style: TextStyle(color: Colors.black54, fontSize: 14),
+                style: TextStyle(
+                  color: Colors.black54,
+                  fontSize: 14,
+                ),
               ),
               const SizedBox(height: 16),
 
-              // TURNO ACTIVO
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(15),
@@ -79,7 +97,11 @@ class InicioEmpleadoScreen extends StatelessWidget {
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.storefront, color: azulEmpleado, size: 25),
+                    Icon(
+                      Icons.storefront,
+                      color: azulEmpleado,
+                      size: 25,
+                    ),
                     SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -95,22 +117,30 @@ class InicioEmpleadoScreen extends StatelessWidget {
                           SizedBox(height: 3),
                           Text(
                             'Sede Central · Sector Tecnológico',
-                            style: TextStyle(color: Colors.black54),
+                            style: TextStyle(
+                              color: Colors.black54,
+                            ),
                           ),
                         ],
                       ),
                     ),
-                    Icon(Icons.circle, color: Colors.green, size: 11),
+                    Icon(
+                      Icons.circle,
+                      color: Colors.green,
+                      size: 11,
+                    ),
                   ],
                 ),
               ),
 
               const SizedBox(height: 22),
 
-              // ACCIONES RÁPIDAS
               const Text(
                 'Acciones rápidas',
-                style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 12),
 
@@ -118,15 +148,15 @@ class InicioEmpleadoScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: _AccionEmpleado(
-                      icono: Icons.point_of_sale,
-                      titulo: 'Registrar salida',
+                      icono: Icons.add_box_outlined,
+                      titulo: 'Registrar entrada',
                       color: azulEmpleado,
                       alPresionar: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (context) =>
-                                const RegistrarSalidaScreen(),
+                                const RegistrarEntradaEmpleadoScreen(),
                           ),
                         );
                       },
@@ -149,31 +179,17 @@ class InicioEmpleadoScreen extends StatelessWidget {
                       },
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _AccionEmpleado(
-                      icono: Icons.inventory,
-                      titulo: 'Mi turno',
-                      color: const Color(0xFF8B5CF6),
-                      alPresionar: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const MiTurnoScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
                 ],
               ),
 
               const SizedBox(height: 24),
 
-              // RESUMEN
               const Text(
                 'Resumen de hoy',
-                style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 12),
 
@@ -225,10 +241,12 @@ class InicioEmpleadoScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // ALERTAS
               const Text(
                 'Alertas de inventario',
-                style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 12),
 
@@ -253,10 +271,12 @@ class InicioEmpleadoScreen extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // MOVIMIENTOS RECIENTES
               const Text(
                 'Movimientos recientes',
-                style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 19,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 12),
 
@@ -299,7 +319,6 @@ class InicioEmpleadoScreen extends StatelessWidget {
         ),
       ),
 
-      // MENÚ INFERIOR
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: 0,
         selectedItemColor: azulEmpleado,
@@ -314,14 +333,6 @@ class InicioEmpleadoScreen extends StatelessWidget {
             icon: Icon(Icons.inventory_2_outlined),
             label: 'Inventario',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.swap_horiz),
-            label: 'Movimientos',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.access_time),
-            label: 'Mi turno',
-          ),
         ],
         onTap: (index) {
           if (index == 1) {
@@ -331,28 +342,12 @@ class InicioEmpleadoScreen extends StatelessWidget {
                 builder: (context) => InventarioEmpleadoScreen(),
               ),
             );
-          } else if (index == 2) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => MovimientosScreen(),
-              ),
-            );
-          } else if (index == 3) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const MiTurnoScreen(),
-              ),
-            );
           }
         },
       ),
     );
   }
 }
-
-// BOTONES DE ACCIONES RÁPIDAS
 
 class _AccionEmpleado extends StatelessWidget {
   final IconData icono;
@@ -399,8 +394,6 @@ class _AccionEmpleado extends StatelessWidget {
     );
   }
 }
-
-// INDICADORES
 
 class _IndicadorEmpleado extends StatelessWidget {
   final String titulo;
@@ -450,8 +443,6 @@ class _IndicadorEmpleado extends StatelessWidget {
   }
 }
 
-// ALERTAS DE INVENTARIO
-
 class _AlertaEmpleado extends StatelessWidget {
   final String nombre;
   final String detalle;
@@ -477,7 +468,11 @@ class _AlertaEmpleado extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.warning_amber_rounded, color: color, size: 27),
+          Icon(
+            Icons.warning_amber_rounded,
+            color: color,
+            size: 27,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -514,8 +509,6 @@ class _AlertaEmpleado extends StatelessWidget {
     );
   }
 }
-
-// MOVIMIENTOS RECIENTES
 
 class _MovimientoEmpleado extends StatelessWidget {
   final String nombre;
@@ -594,6 +587,188 @@ class _MovimientoEmpleado extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+// PANTALLA PARA REGISTRAR ENTRADAS
+
+class RegistrarEntradaEmpleadoScreen extends StatefulWidget {
+  const RegistrarEntradaEmpleadoScreen({super.key});
+
+  @override
+  State<RegistrarEntradaEmpleadoScreen> createState() =>
+      _RegistrarEntradaEmpleadoScreenState();
+}
+
+class _RegistrarEntradaEmpleadoScreenState
+    extends State<RegistrarEntradaEmpleadoScreen> {
+  Producto? productoSeleccionado;
+
+  final TextEditingController cantidadController =
+      TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (InventarioRepositorio.productos.isNotEmpty) {
+      productoSeleccionado =
+          InventarioRepositorio.productos.first;
+    }
+  }
+
+  @override
+  void dispose() {
+    cantidadController.dispose();
+    super.dispose();
+  }
+
+  void registrarEntrada() {
+    final cantidad =
+        int.tryParse(cantidadController.text.trim());
+
+    if (productoSeleccionado == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Selecciona un producto'),
+        ),
+      );
+      return;
+    }
+
+    if (cantidad == null || cantidad <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Ingresa una cantidad válida'),
+        ),
+      );
+      return;
+    }
+
+    productoSeleccionado!.stock += cantidad;
+
+    final messenger = ScaffoldMessenger.of(context);
+    final nombreProducto = productoSeleccionado!.nombre;
+
+    Navigator.pop(context);
+
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          'Entrada registrada: $cantidad unidades de $nombreProducto',
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: fondoEmpleado,
+      appBar: AppBar(
+        title: const Text('Registrar entrada'),
+        backgroundColor: azulEmpleado,
+        foregroundColor: Colors.white,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Entrada de mercancía',
+              style: TextStyle(
+                fontSize: 23,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Selecciona el producto y registra la cantidad recibida.',
+              style: TextStyle(color: Colors.black54),
+            ),
+            const SizedBox(height: 25),
+
+            const Text(
+              'Producto',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+
+            DropdownButtonFormField<Producto>(
+              value: productoSeleccionado,
+              isExpanded: true,
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              hint: const Text('Selecciona un producto'),
+              items: InventarioRepositorio.productos.map(
+                (producto) {
+                  return DropdownMenuItem<Producto>(
+                    value: producto,
+                    child: Text(
+                      producto.nombre,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  );
+                },
+              ).toList(),
+              onChanged: (producto) {
+                setState(() {
+                  productoSeleccionado = producto;
+                });
+              },
+            ),
+
+            const SizedBox(height: 20),
+
+            const Text(
+              'Cantidad recibida',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+
+            TextField(
+              controller: cantidadController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                hintText: 'Ej. 10',
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 25),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: registrarEntrada,
+                icon: const Icon(Icons.add),
+                label: const Text('Guardar entrada'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: azulEmpleado,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 16,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

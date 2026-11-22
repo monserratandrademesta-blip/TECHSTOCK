@@ -4,12 +4,14 @@ import 'inicio.dart';
 import 'historial.dart';
 
 class MovimientosScreen extends StatefulWidget {
-  /// Nombre de un producto para preseleccionarlo al entrar desde
-  /// el botón "Registrar movimiento" de Inventario. Si no se manda
-  /// (o no coincide con ninguno), se usa el primer producto de la lista.
   final String? productoInicial;
+  final bool entradaInicial;
 
-  const MovimientosScreen({super.key, this.productoInicial});
+  const MovimientosScreen({
+    super.key,
+    this.productoInicial,
+    this.entradaInicial = true,
+  });
 
   @override
   State<MovimientosScreen> createState() => _MovimientosScreenState();
@@ -30,13 +32,18 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
   void initState() {
     super.initState();
 
+    esEntrada = widget.entradaInicial;
+    proveedor = esEntrada ? 'Apple Direct' : 'Venta en tienda';
+
     final productos = InventarioRepositorio.productos;
+
     productoSeleccionado = productos.firstWhere(
       (p) => p.nombre == widget.productoInicial,
       orElse: () => productos.first,
     );
 
-    costoController.text = productoSeleccionado.precio.toStringAsFixed(2);
+    costoController.text =
+        productoSeleccionado.precio.toStringAsFixed(2);
   }
 
   @override
@@ -51,15 +58,21 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
     return (double.tryParse(costoController.text) ?? 0) * cantidad;
   }
 
-  // BOTÓN "Confirmar entrada" / "Confirmar salida"
   void registrarMovimiento() {
+    final costo = double.tryParse(costoController.text);
+
     if (cantidad < 1) {
-      _mensaje('La cantidad debe ser mayor que cero');
+      _mensaje('La cantidad debe ser mayor que cero.');
+      return;
+    }
+
+    if (costo == null || !costo.isFinite || costo < 0) {
+      _mensaje('Ingresa un costo o precio válido.');
       return;
     }
 
     if (!esEntrada && cantidad > productoSeleccionado.stock) {
-      _mensaje('No hay suficiente inventario para esta salida');
+      _mensaje('No hay suficiente inventario para esta salida.');
       return;
     }
 
@@ -69,7 +82,9 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
         title: const Text('Confirmar movimiento'),
         content: Text(
           '${esEntrada ? "Entrada" : "Salida"} de $cantidad unidad(es) de '
-          '${productoSeleccionado.nombre}.\n'
+          '${productoSeleccionado.nombre}.\n\n'
+          'Stock actual: ${productoSeleccionado.stock}\n'
+          'Stock después: ${esEntrada ? productoSeleccionado.stock + cantidad : productoSeleccionado.stock - cantidad}\n\n'
           'Total: \$${total.toStringAsFixed(2)}',
         ),
         actions: [
@@ -79,25 +94,41 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
           ),
           ElevatedButton(
             onPressed: () {
-              // Aquí es donde realmente se actualiza el stock
-              // compartido con Inventario (InventarioRepositorio).
-              setState(() {
-                if (esEntrada) {
-                  productoSeleccionado.stock += cantidad;
-                } else {
-                  productoSeleccionado.stock -= cantidad;
-                }
-                cantidad = 1;
-                referenciaController.clear();
-                notasController.clear();
-              });
+              try {
+                final movimiento =
+                    InventarioRepositorio.registrarMovimiento(
+                  producto: productoSeleccionado,
+                  esEntrada: esEntrada,
+                  cantidad: cantidad,
+                  costoUnitario: costo,
+                  responsable: 'Carlos Mendoza · Administrador',
+                  referencia: referenciaController.text,
+                  destino: proveedor,
+                  notas: notasController.text,
+                );
 
-              Navigator.pop(dialogContext);
-              _mensaje(
-                '${esEntrada ? "Entrada" : "Salida"} registrada. '
-                'Nuevo stock de ${productoSeleccionado.nombre}: '
-                '${productoSeleccionado.stock} unidades',
-              );
+                Navigator.pop(dialogContext);
+
+                setState(() {
+                  cantidad = 1;
+                  referenciaController.clear();
+                  notasController.clear();
+                  proveedor = esEntrada
+                      ? 'Apple Direct'
+                      : 'Venta en tienda';
+                });
+
+                _mensaje(
+                  '${movimiento.folio} registrado correctamente. '
+                  'Nuevo stock: ${movimiento.stockNuevo} unidades.',
+                );
+              } on ArgumentError catch (e) {
+                Navigator.pop(dialogContext);
+                _mensaje(e.message.toString());
+              } on StateError catch (e) {
+                Navigator.pop(dialogContext);
+                _mensaje(e.message);
+              }
             },
             child: const Text('Confirmar'),
           ),
@@ -113,7 +144,10 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
   }
 
   void _irA(Widget pantalla) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => pantalla));
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => pantalla),
+    );
   }
 
   @override
@@ -142,7 +176,10 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
           children: [
             const Text(
               'Registrar movimiento',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 7),
             const Text(
@@ -151,7 +188,6 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
             ),
             const SizedBox(height: 22),
 
-            // BOTONES "Entrada" / "Salida"
             Container(
               padding: const EdgeInsets.all(5),
               decoration: BoxDecoration(
@@ -169,6 +205,7 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
                         setState(() {
                           esEntrada = true;
                           cantidad = 1;
+                          proveedor = 'Apple Direct';
                         });
                       },
                     ),
@@ -182,6 +219,7 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
                         setState(() {
                           esEntrada = false;
                           cantidad = 1;
+                          proveedor = 'Venta en tienda';
                         });
                       },
                     ),
@@ -193,7 +231,6 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
             const SizedBox(height: 24),
             _titulo('Producto seleccionado'),
 
-            // DROPDOWN de producto -> ahora sí tomado del inventario real
             DropdownButtonFormField<Producto>(
               value: productoSeleccionado,
               isExpanded: true,
@@ -213,13 +250,14 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
                     productoSeleccionado = valor;
                     cantidad = 1;
                     costoController.text =
-                        productoSeleccionado.precio.toStringAsFixed(2);
+                        valor.precio.toStringAsFixed(2);
                   });
                 }
               },
             ),
 
             const SizedBox(height: 12),
+
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(15),
@@ -259,7 +297,6 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
             const SizedBox(height: 23),
             _titulo('Cantidad de unidades'),
 
-            // STEPPER de cantidad -> respeta el stock real del producto
             Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: 15,
@@ -299,7 +336,10 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
                         }
                       });
                     },
-                    icon: const Icon(Icons.add_circle, color: azul),
+                    icon: const Icon(
+                      Icons.add_circle,
+                      color: azul,
+                    ),
                   ),
                 ],
               ),
@@ -340,13 +380,15 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
 
             const SizedBox(height: 20),
             _titulo('Referencia del documento'),
+
             TextField(
               controller: referenciaController,
-              decoration: _decoracion('Ej. FAC-2024-8841'),
+              decoration: _decoracion('Ej. FAC-2026-001'),
             ),
 
             const SizedBox(height: 20),
             _titulo(esEntrada ? 'Costo unitario' : 'Precio unitario'),
+
             TextField(
               controller: costoController,
               keyboardType: const TextInputType.numberWithOptions(
@@ -360,13 +402,17 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
 
             const SizedBox(height: 20),
             _titulo('Notas adicionales'),
+
             TextField(
               controller: notasController,
               maxLines: 3,
-              decoration: _decoracion('Escribe alguna observación...'),
+              decoration: _decoracion(
+                'Escribe alguna observación...',
+              ),
             ),
 
             const SizedBox(height: 22),
+
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
@@ -402,7 +448,9 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
                       ),
                       Text(
                         '${esEntrada ? productoSeleccionado.stock + cantidad : productoSeleccionado.stock - cantidad}',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
@@ -426,6 +474,7 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
             ),
 
             const SizedBox(height: 24),
+
             SizedBox(
               width: double.infinity,
               height: 55,
@@ -433,7 +482,9 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
                 onPressed: registrarMovimiento,
                 icon: const Icon(Icons.check_circle_outline),
                 label: Text(
-                  esEntrada ? 'Confirmar entrada' : 'Confirmar salida',
+                  esEntrada
+                      ? 'Confirmar entrada'
+                      : 'Confirmar salida',
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: azul,
@@ -444,11 +495,11 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
                 ),
               ),
             ),
+
             const SizedBox(height: 30),
           ],
         ),
       ),
-      // MENÚ INFERIOR conectado a las demás pantallas del admin
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: 2,
@@ -527,20 +578,26 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: seleccionado ? const Color(0xFF00288E) : Colors.transparent,
+          color: seleccionado
+              ? const Color(0xFF00288E)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(11),
         ),
         child: Column(
           children: [
             Icon(
               icono,
-              color: seleccionado ? Colors.white : const Color(0xFF444653),
+              color: seleccionado
+                  ? Colors.white
+                  : const Color(0xFF444653),
             ),
             const SizedBox(height: 5),
             Text(
               texto,
               style: TextStyle(
-                color: seleccionado ? Colors.white : const Color(0xFF444653),
+                color: seleccionado
+                    ? Colors.white
+                    : const Color(0xFF444653),
                 fontWeight: FontWeight.bold,
                 fontSize: 12,
               ),

@@ -1,8 +1,6 @@
-
 import 'package:flutter/material.dart';
 import 'inicio_empleado.dart';
-import 'movimientos.dart';
-import 'miturno.dart';
+import 'inventario.dart';
 
 class InventarioEmpleadoScreen extends StatefulWidget {
   const InventarioEmpleadoScreen({super.key});
@@ -12,72 +10,26 @@ class InventarioEmpleadoScreen extends StatefulWidget {
       _InventarioEmpleadoScreenState();
 }
 
-class _InventarioEmpleadoScreenState extends State<InventarioEmpleadoScreen> {
+class _InventarioEmpleadoScreenState
+    extends State<InventarioEmpleadoScreen> {
   final TextEditingController buscador = TextEditingController();
 
   String categoriaSeleccionada = 'Todos';
 
-  final List<Map<String, dynamic>> productos = [
-    {
-      'nombre': 'iPhone 15 Pro Max 256GB',
-      'sku': 'APL-15PM-256',
-      'categoria': 'Celulares',
-      'precio': 1199,
-      'stock': 14,
-      'ubicacion': 'Pasillo A · Vitrina 2',
-      'bodega': 8,
-    },
-    {
-      'nombre': 'MacBook Pro 14 M3',
-      'sku': 'APL-MBP-14M3',
-      'categoria': 'Computadoras',
-      'precio': 1999,
-      'stock': 2,
-      'ubicacion': 'Bodega B · Estante 4',
-      'bodega': 2,
-    },
-    {
-      'nombre': 'Galaxy S24 Ultra 512GB',
-      'sku': 'SAM-S24U-512',
-      'categoria': 'Celulares',
-      'precio': 1299,
-      'stock': 8,
-      'ubicacion': 'Vitrina Central',
-      'bodega': 5,
-    },
-    {
-      'nombre': 'Sony WH-1000XM5',
-      'sku': 'SNY-WH1005',
-      'categoria': 'Accesorios',
-      'precio': 349,
-      'stock': 22,
-      'ubicacion': 'Pasillo Accesorios',
-      'bodega': 12,
-    },
-    {
-      'nombre': 'ASUS ROG Zephyrus G16',
-      'sku': 'ASU-ROG-G16',
-      'categoria': 'Computadoras',
-      'precio': 1799,
-      'stock': 5,
-      'ubicacion': 'Pasillo C · Exhibición',
-      'bodega': 4,
-    },
-  ];
-
-  List<Map<String, dynamic>> get productosFiltrados {
-    return productos.where((producto) {
-      final nombre = producto['nombre'].toString().toLowerCase();
-      final sku = producto['sku'].toString().toLowerCase();
+  List<Producto> get productosFiltrados {
+    return InventarioRepositorio.productos.where((producto) {
+      final nombre = producto.nombre.toLowerCase();
+      final sku = producto.sku.toLowerCase();
       final busqueda = buscador.text.toLowerCase();
 
       final coincideBusqueda =
           nombre.contains(busqueda) || sku.contains(busqueda);
 
-      final coincideCategoria = categoriaSeleccionada == 'Todos' ||
+      final coincideCategoria =
+          categoriaSeleccionada == 'Todos' ||
           (categoriaSeleccionada == 'Bajo stock'
-              ? producto['stock'] <= 5
-              : producto['categoria'] == categoriaSeleccionada);
+              ? producto.stock <= 5
+              : producto.categoria == categoriaSeleccionada);
 
       return coincideBusqueda && coincideCategoria;
     }).toList();
@@ -103,7 +55,9 @@ class _InventarioEmpleadoScreenState extends State<InventarioEmpleadoScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        iconTheme: const IconThemeData(color: Color(0xFF00288E)),
+        iconTheme: const IconThemeData(
+          color: Color(0xFF00288E),
+        ),
       ),
       body: SafeArea(
         child: Column(
@@ -137,7 +91,8 @@ class _InventarioEmpleadoScreenState extends State<InventarioEmpleadoScreen> {
                   'Accesorios',
                   'Bajo stock',
                 ].map((categoria) {
-                  final seleccionada = categoriaSeleccionada == categoria;
+                  final seleccionada =
+                      categoriaSeleccionada == categoria;
 
                   return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -167,7 +122,10 @@ class _InventarioEmpleadoScreenState extends State<InventarioEmpleadoScreen> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const Icon(Icons.filter_list, color: Color(0xFF00288E)),
+                  const Icon(
+                    Icons.filter_list,
+                    color: Color(0xFF00288E),
+                  ),
                 ],
               ),
             ),
@@ -177,7 +135,12 @@ class _InventarioEmpleadoScreenState extends State<InventarioEmpleadoScreen> {
                       child: Text('No se encontraron productos'),
                     )
                   : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+                      padding: const EdgeInsets.fromLTRB(
+                        16,
+                        4,
+                        16,
+                        16,
+                      ),
                       itemCount: productosFiltrados.length,
                       itemBuilder: (context, index) {
                         final producto = productosFiltrados[index];
@@ -214,35 +177,14 @@ class _InventarioEmpleadoScreenState extends State<InventarioEmpleadoScreen> {
             icon: Icon(Icons.inventory_2_outlined),
             label: 'Inventario',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.swap_horiz),
-            label: 'Movimientos',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.access_time),
-            label: 'Mi turno',
-          ),
         ],
         onTap: (index) {
           if (index == 0) {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => const InicioEmpleadoScreen(),
-              ),
-            );
-          } else if (index == 2) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const MovimientosScreen(),
-              ),
-            );
-          } else if (index == 3) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const MiTurnoScreen(),
+                builder: (context) =>
+                    const InicioEmpleadoScreen(),
               ),
             );
           }
@@ -251,8 +193,8 @@ class _InventarioEmpleadoScreenState extends State<InventarioEmpleadoScreen> {
     );
   }
 
-  Widget _tarjetaProducto(Map<String, dynamic> producto) {
-    final int stock = producto['stock'];
+  Widget _tarjetaProducto(Producto producto) {
+    final int stock = producto.stock;
     final bool bajoStock = stock <= 5;
 
     return Card(
@@ -281,9 +223,9 @@ class _InventarioEmpleadoScreenState extends State<InventarioEmpleadoScreen> {
                       borderRadius: BorderRadius.circular(13),
                     ),
                     child: Icon(
-                      producto['categoria'] == 'Computadoras'
+                      producto.categoria == 'Computadoras'
                           ? Icons.laptop_mac
-                          : producto['categoria'] == 'Celulares'
+                          : producto.categoria == 'Celulares'
                               ? Icons.smartphone
                               : Icons.headphones,
                       color: const Color(0xFF00288E),
@@ -296,7 +238,7 @@ class _InventarioEmpleadoScreenState extends State<InventarioEmpleadoScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          producto['nombre'],
+                          producto.nombre,
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
@@ -304,7 +246,7 @@ class _InventarioEmpleadoScreenState extends State<InventarioEmpleadoScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'SKU: ${producto['sku']}',
+                          'SKU: ${producto.sku}',
                           style: const TextStyle(
                             color: Colors.black54,
                             fontSize: 12,
@@ -312,7 +254,7 @@ class _InventarioEmpleadoScreenState extends State<InventarioEmpleadoScreen> {
                         ),
                         const SizedBox(height: 7),
                         Text(
-                          '\$${producto['precio']}',
+                          '\$${producto.precio.toStringAsFixed(2)}',
                           style: const TextStyle(
                             color: Color(0xFF00288E),
                             fontWeight: FontWeight.bold,
@@ -333,7 +275,7 @@ class _InventarioEmpleadoScreenState extends State<InventarioEmpleadoScreen> {
                         ),
                       ),
                       Text(
-                        'En tienda',
+                        'Existencias',
                         style: TextStyle(
                           fontSize: 10,
                           color: bajoStock ? Colors.red : Colors.black54,
@@ -347,14 +289,14 @@ class _InventarioEmpleadoScreenState extends State<InventarioEmpleadoScreen> {
               Row(
                 children: [
                   const Icon(
-                    Icons.location_on_outlined,
+                    Icons.category_outlined,
                     size: 17,
                     color: Colors.black54,
                   ),
                   const SizedBox(width: 5),
                   Expanded(
                     child: Text(
-                      producto['ubicacion'],
+                      producto.categoria,
                       style: const TextStyle(
                         fontSize: 12,
                         color: Colors.black54,
@@ -362,13 +304,13 @@ class _InventarioEmpleadoScreenState extends State<InventarioEmpleadoScreen> {
                     ),
                   ),
                   const Icon(
-                    Icons.warehouse_outlined,
+                    Icons.inventory_2_outlined,
                     size: 17,
                     color: Colors.black54,
                   ),
                   const SizedBox(width: 5),
                   Text(
-                    'Bodega: ${producto['bodega']}',
+                    'Stock: $stock',
                     style: const TextStyle(
                       fontSize: 12,
                       color: Colors.black54,
@@ -404,7 +346,7 @@ class _InventarioEmpleadoScreenState extends State<InventarioEmpleadoScreen> {
     );
   }
 
-  void _mostrarDetalle(Map<String, dynamic> producto) {
+  void _mostrarDetalle(Producto producto) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -434,45 +376,38 @@ class _InventarioEmpleadoScreenState extends State<InventarioEmpleadoScreen> {
                 ),
                 const SizedBox(height: 22),
                 Text(
-                  producto['nombre'],
+                  producto.nombre,
                   style: const TextStyle(
                     fontSize: 21,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text('SKU: ${producto['sku']}'),
+                Text('SKU: ${producto.sku}'),
                 const SizedBox(height: 16),
-                _datoDetalle('Precio', '\$${producto['precio']}'),
+                _datoDetalle('Categoría', producto.categoria),
                 _datoDetalle(
-                  'Existencias en tienda',
-                  '${producto['stock']}',
+                  'Precio',
+                  '\$${producto.precio.toStringAsFixed(2)}',
                 ),
-                _datoDetalle('Ubicación', producto['ubicacion']),
                 _datoDetalle(
-                  'Existencias en bodega',
-                  '${producto['bodega']}',
+                  'Existencias disponibles',
+                  '${producto.stock}',
                 ),
+                _datoDetalle('Descripción', producto.detalle),
                 const SizedBox(height: 18),
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF00288E),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                  child: OutlinedButton.icon(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.check),
+                    label: const Text('Cerrar detalle'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF00288E),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 14,
+                      ),
                     ),
-                    onPressed: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const MovimientosScreen(),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.point_of_sale),
-                    label: const Text('Registrar venta'),
                   ),
                 ),
               ],
@@ -491,13 +426,18 @@ class _InventarioEmpleadoScreenState extends State<InventarioEmpleadoScreen> {
         children: [
           Text(
             titulo,
-            style: const TextStyle(color: Colors.black54),
+            style: const TextStyle(
+              color: Colors.black54,
+            ),
           ),
+          const SizedBox(width: 12),
           Flexible(
             child: Text(
               valor,
               textAlign: TextAlign.right,
-              style: const TextStyle(fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],

@@ -6,9 +6,7 @@ import 'historial.dart';
 const Color azul = Color(0xFF00288E);
 const Color fondoInventario = Color(0xFFFAF8FF);
 
-/// Modelo de producto. Se usa tanto en Inventario como en Movimientos.
-/// stock NO es final: así Movimientos puede modificarlo directamente
-/// cuando se registra una entrada o una salida.
+/// MODELO DE PRODUCTO
 class Producto {
   final String sku;
   String nombre;
@@ -27,10 +25,42 @@ class Producto {
   });
 }
 
-/// Repositorio en memoria COMPARTIDO entre Inventario y Movimientos.
-/// Al ser una lista estática, ambos módulos leen y escriben sobre
-/// los mismos objetos Producto: si Movimientos descuenta stock,
-/// Inventario lo ve reflejado automáticamente (y viceversa).
+/// MODELO DE MOVIMIENTO
+class MovimientoInventario {
+  final String folio;
+  final String tipo;
+  final String producto;
+  final String sku;
+  final int cantidad;
+  final int stockAnterior;
+  final int stockNuevo;
+  final double costoUnitario;
+  final DateTime fecha;
+  final String responsable;
+  final String referencia;
+  final String destino;
+  final String notas;
+
+  MovimientoInventario({
+    required this.folio,
+    required this.tipo,
+    required this.producto,
+    required this.sku,
+    required this.cantidad,
+    required this.stockAnterior,
+    required this.stockNuevo,
+    required this.costoUnitario,
+    required this.fecha,
+    required this.responsable,
+    required this.referencia,
+    required this.destino,
+    required this.notas,
+  });
+
+  double get total => cantidad * costoUnitario;
+}
+
+/// REPOSITORIO COMPARTIDO
 class InventarioRepositorio {
   InventarioRepositorio._();
 
@@ -77,11 +107,91 @@ class InventarioRepositorio {
     ),
   ];
 
+  /// Aquí se guardan los movimientos realizados durante la ejecución.
+  static final List<MovimientoInventario> movimientos = [];
+
+  static int _consecutivoEntrada = 9022;
+  static int _consecutivoSalida = 4413;
+
   static void agregar(Producto producto) {
+    final skuExiste = productos.any(
+      (p) => p.sku.trim().toLowerCase() ==
+          producto.sku.trim().toLowerCase(),
+    );
+
+    if (skuExiste) {
+      throw ArgumentError('Ya existe un producto con ese SKU.');
+    }
+
     productos.add(producto);
+  }
+
+  /// Registra el movimiento y actualiza el stock en una sola operación.
+  static MovimientoInventario registrarMovimiento({
+    required Producto producto,
+    required bool esEntrada,
+    required int cantidad,
+    required double costoUnitario,
+    required String responsable,
+    String referencia = '',
+    String destino = '',
+    String notas = '',
+  }) {
+    if (!productos.contains(producto)) {
+      throw ArgumentError('El producto no pertenece al inventario.');
+    }
+
+    if (cantidad <= 0) {
+      throw ArgumentError('La cantidad debe ser mayor que cero.');
+    }
+
+    if (!costoUnitario.isFinite || costoUnitario < 0) {
+      throw ArgumentError('El costo o precio no es válido.');
+    }
+
+    if (responsable.trim().isEmpty) {
+      throw ArgumentError('Debes indicar quién realiza el movimiento.');
+    }
+
+    if (!esEntrada && cantidad > producto.stock) {
+      throw StateError('No hay suficiente inventario para esta salida.');
+    }
+
+    final stockAnterior = producto.stock;
+    final stockNuevo = esEntrada
+        ? stockAnterior + cantidad
+        : stockAnterior - cantidad;
+
+    final tipo = esEntrada ? 'Entrada' : 'Salida';
+
+    final folio = esEntrada
+        ? 'ENT-${_consecutivoEntrada++}'
+        : 'SAL-${_consecutivoSalida++}';
+
+    final movimiento = MovimientoInventario(
+      folio: folio,
+      tipo: tipo,
+      producto: producto.nombre,
+      sku: producto.sku,
+      cantidad: cantidad,
+      stockAnterior: stockAnterior,
+      stockNuevo: stockNuevo,
+      costoUnitario: costoUnitario,
+      fecha: DateTime.now(),
+      responsable: responsable,
+      referencia: referencia.trim(),
+      destino: destino.trim(),
+      notas: notas.trim(),
+    );
+
+    producto.stock = stockNuevo;
+    movimientos.insert(0, movimiento);
+
+    return movimiento;
   }
 }
 
+/// PANTALLA DE INVENTARIO
 class InventarioScreen extends StatefulWidget {
   const InventarioScreen({super.key});
 
@@ -127,12 +237,13 @@ class _InventarioScreenState extends State<InventarioScreen> {
     super.dispose();
   }
 
-  // BOTÓN "Nuevo producto" (FloatingActionButton)
+  /// REGISTRAR UN PRODUCTO NUEVO
   void agregarProducto() {
     final nombre = TextEditingController();
     final sku = TextEditingController();
     final precio = TextEditingController();
     final stock = TextEditingController();
+
     String categoria = 'Accesorios';
 
     showDialog(
@@ -183,38 +294,51 @@ class _InventarioScreenState extends State<InventarioScreen> {
             ),
             ElevatedButton(
               onPressed: () {
+                final precioIngresado = double.tryParse(precio.text);
+                final stockIngresado = int.tryParse(stock.text);
+
                 if (nombre.text.trim().isEmpty ||
                     sku.text.trim().isEmpty ||
-                    double.tryParse(precio.text) == null ||
-                    int.tryParse(stock.text) == null) {
+                    precioIngresado == null ||
+                    !precioIngresado.isFinite ||
+                    precioIngresado < 0 ||
+                    stockIngresado == null ||
+                    stockIngresado < 0) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content:
-                          Text('Completa correctamente todos los campos'),
+                      content: Text('Revisa los datos ingresados.'),
                     ),
                   );
                   return;
                 }
 
-                setState(() {
+                try {
                   InventarioRepositorio.agregar(
                     Producto(
                       sku: sku.text.trim(),
                       nombre: nombre.text.trim(),
                       detalle: 'Producto registrado',
-                      precio: double.parse(precio.text),
-                      stock: int.parse(stock.text),
+                      precio: precioIngresado,
+                      stock: stockIngresado,
                       categoria: categoria,
                     ),
                   );
-                });
 
-                Navigator.pop(dialogContext);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('${nombre.text} agregado al inventario'),
-                  ),
-                );
+                  setState(() {});
+                  Navigator.pop(dialogContext);
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        '${nombre.text.trim()} agregado al inventario.',
+                      ),
+                    ),
+                  );
+                } on ArgumentError catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(e.message.toString())),
+                  );
+                }
               },
               child: const Text('Guardar'),
             ),
@@ -224,7 +348,10 @@ class _InventarioScreenState extends State<InventarioScreen> {
     );
   }
 
-  static Widget _campo(TextEditingController controller, String etiqueta) {
+  static Widget _campo(
+    TextEditingController controller,
+    String etiqueta,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TextField(
@@ -237,7 +364,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
     );
   }
 
-  // BOTÓN de perfil (ícono persona en el AppBar)
+  /// PERFIL DEL ADMINISTRADOR
   void _verPerfil() {
     showModalBottomSheet(
       context: context,
@@ -278,7 +405,10 @@ class _InventarioScreenState extends State<InventarioScreen> {
   }
 
   void _irA(Widget pantalla) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => pantalla));
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => pantalla),
+    );
   }
 
   @override
@@ -289,7 +419,10 @@ class _InventarioScreenState extends State<InventarioScreen> {
         backgroundColor: Colors.white,
         title: const Text(
           'Inventario',
-          style: TextStyle(color: azul, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: azul,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         iconTheme: const IconThemeData(color: azul),
         elevation: 0,
@@ -331,7 +464,9 @@ class _InventarioScreenState extends State<InventarioScreen> {
                 'Accesorios',
                 'Bajo Stock',
               ].map((categoria) {
-                final seleccionado = categoriaSeleccionada == categoria;
+                final seleccionado =
+                    categoriaSeleccionada == categoria;
+
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4),
                   child: ChoiceChip(
@@ -375,7 +510,9 @@ class _InventarioScreenState extends State<InventarioScreen> {
           ),
           Expanded(
             child: productosFiltrados.isEmpty
-                ? const Center(child: Text('No se encontraron productos'))
+                ? const Center(
+                    child: Text('No se encontraron productos'),
+                  )
                 : ListView.builder(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                     itemCount: productosFiltrados.length,
@@ -403,8 +540,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
                                     height: 48,
                                     decoration: BoxDecoration(
                                       color: const Color(0xFFE2E7FF),
-                                      borderRadius:
-                                          BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: const Icon(
                                       Icons.devices,
@@ -435,7 +571,6 @@ class _InventarioScreenState extends State<InventarioScreen> {
                                       ],
                                     ),
                                   ),
-                                  // BOTÓN info (ícono) -> detalle rápido
                                   IconButton(
                                     onPressed: () {
                                       showDialog(
@@ -491,8 +626,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
                                   Text(
                                     critico ? 'Crítico' : 'Disponible',
                                     style: TextStyle(
-                                      color:
-                                          critico ? Colors.red : Colors.green,
+                                      color: critico ? Colors.red : Colors.green,
                                       fontWeight: FontWeight.bold,
                                       fontSize: 12,
                                     ),
@@ -500,116 +634,51 @@ class _InventarioScreenState extends State<InventarioScreen> {
                                 ],
                               ),
                               const SizedBox(height: 12),
-                              Row(
-                                children: [
-                                  // BOTÓN "Editar" -> edita el stock real
-                                  Expanded(
-                                    child: OutlinedButton.icon(
-                                      onPressed: () {
-                                        final cantidad =
-                                            TextEditingController(
-                                          text: '$stock',
-                                        );
-                                        showDialog(
-                                          context: context,
-                                          builder: (dialogContext) =>
-                                              AlertDialog(
-                                            title:
-                                                const Text('Editar stock'),
-                                            content: TextField(
-                                              controller: cantidad,
-                                              keyboardType:
-                                                  TextInputType.number,
-                                              decoration:
-                                                  const InputDecoration(
-                                                labelText: 'Existencias',
-                                              ),
-                                            ),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () =>
-                                                    Navigator.pop(
-                                                        dialogContext),
-                                                child:
-                                                    const Text('Cancelar'),
-                                              ),
-                                              ElevatedButton(
-                                                onPressed: () {
-                                                  final nuevoStock =
-                                                      int.tryParse(
-                                                          cantidad.text);
-                                                  if (nuevoStock == null ||
-                                                      nuevoStock < 0) {
-                                                    return;
-                                                  }
-                                                  setState(() {
-                                                    producto.stock =
-                                                        nuevoStock;
-                                                  });
-                                                  Navigator.pop(
-                                                      dialogContext);
-                                                },
-                                                child: const Text('Guardar'),
-                                              ),
-                                            ],
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (dialogContext) => AlertDialog(
+                                        title: const Text('Detalle del producto'),
+                                        content: Text(
+                                          '${producto.nombre}\n\n'
+                                          'Categoría: ${producto.categoria}\n'
+                                          'SKU: ${producto.sku}\n'
+                                          'Precio: \$${producto.precio.toStringAsFixed(2)}\n'
+                                          'Stock actual: ${producto.stock}',
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(dialogContext),
+                                            child: const Text('Cerrar'),
                                           ),
-                                        );
-                                      },
-                                      icon: const Icon(Icons.edit_outlined),
-                                      label: const Text('Editar'),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  // BOTÓN "Detalle" -> ficha completa +
-                                  // acceso directo a registrar movimiento
-                                  Expanded(
-                                    child: ElevatedButton(
-                                      onPressed: () {
-                                        showDialog(
-                                          context: context,
-                                          builder: (dialogContext) =>
-                                              AlertDialog(
-                                            title: const Text('Detalle'),
-                                            content: Text(
-                                              '${producto.nombre}\n'
-                                              'Categoría: ${producto.categoria}\n'
-                                              'SKU: ${producto.sku}\n'
-                                              'Precio: \$${producto.precio.toStringAsFixed(2)}\n'
-                                              'Stock: $stock',
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              Navigator.pop(dialogContext);
+                                              _irA(
+                                                MovimientosScreen(
+                                                  productoInicial:
+                                                      producto.nombre,
+                                                ),
+                                              );
+                                            },
+                                            child: const Text(
+                                              'Registrar movimiento',
                                             ),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () =>
-                                                    Navigator.pop(
-                                                        dialogContext),
-                                                child: const Text('Cerrar'),
-                                              ),
-                                              ElevatedButton(
-                                                onPressed: () {
-                                                  Navigator.pop(
-                                                      dialogContext);
-                                                  _irA(
-                                                    MovimientosScreen(
-                                                      productoInicial:
-                                                          producto.nombre,
-                                                    ),
-                                                  );
-                                                },
-                                                child: const Text(
-                                                    'Registrar movimiento'),
-                                              ),
-                                            ],
                                           ),
-                                        );
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: azul,
-                                        foregroundColor: Colors.white,
+                                        ],
                                       ),
-                                      child: const Text('Detalle'),
-                                    ),
+                                    );
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: azul,
+                                    foregroundColor: Colors.white,
                                   ),
-                                ],
+                                  child: const Text('Detalle'),
+                                ),
                               ),
                             ],
                           ),
@@ -627,7 +696,6 @@ class _InventarioScreenState extends State<InventarioScreen> {
         icon: const Icon(Icons.add),
         label: const Text('Nuevo producto'),
       ),
-      // MENÚ INFERIOR conectado a las demás pantallas del admin
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: 1,

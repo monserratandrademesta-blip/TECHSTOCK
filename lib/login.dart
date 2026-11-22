@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'inicio.dart';
 import 'inicio_empleado.dart';
+import 'cliente.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -10,14 +11,24 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  bool esAdministrador = true;
+  // 0 = Administrador, 1 = Empleado, 2 = Cliente
+  int rolSeleccionado = 0;
+
   bool mostrarPassword = false;
-  bool recordarSesion = true;
 
   final usuarioController =
       TextEditingController(text: 'admin@techstock.com');
 
   final passwordController = TextEditingController();
+
+  final String correoAdmin = 'admin@techstock.com';
+  final String passwordAdmin = 'Admin123';
+
+  final String correoEmpleado = 'lucia@techstock.com';
+  final String passwordEmpleado = 'Empleado123';
+
+  final String correoCliente = 'cliente@techstock.com';
+  final String passwordCliente = 'Cliente123';
 
   @override
   void dispose() {
@@ -26,23 +37,74 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  // SIMULADOR DE INICIO DE SESIÓN
+  void cambiarRol(int nuevoRol) {
+    setState(() {
+      rolSeleccionado = nuevoRol;
+
+      if (nuevoRol == 0) {
+        usuarioController.text = correoAdmin;
+      } else if (nuevoRol == 1) {
+        usuarioController.text = correoEmpleado;
+      } else {
+        usuarioController.text = correoCliente;
+      }
+
+      passwordController.clear();
+    });
+  }
+
   void iniciarSesion() {
-    if (esAdministrador) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const InicioScreen(),
-        ),
-      );
-    } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const InicioEmpleadoScreen(),
-        ),
-      );
+    final correo = usuarioController.text.trim().toLowerCase();
+    final password = passwordController.text;
+
+    if (correo.isEmpty || password.isEmpty) {
+      mostrarMensaje('Completa todos los campos');
+      return;
     }
+
+    if (rolSeleccionado == 0) {
+      if (correo == correoAdmin && password == passwordAdmin) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const InicioScreen(),
+          ),
+        );
+      } else {
+        mostrarMensaje('Correo o contraseña de administrador incorrectos');
+      }
+    } else if (rolSeleccionado == 1) {
+      if (correo == correoEmpleado && password == passwordEmpleado) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const InicioEmpleadoScreen(),
+          ),
+        );
+      } else {
+        mostrarMensaje('Correo o contraseña de empleado incorrectos');
+      }
+    } else {
+      if (correo == correoCliente && password == passwordCliente) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const ClienteScreen(),
+          ),
+        );
+      } else {
+        mostrarMensaje('Correo o contraseña de cliente incorrectos');
+      }
+    }
+  }
+
+  void mostrarMensaje(String mensaje) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(mensaje),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   @override
@@ -89,9 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const Text(
                   'Control Inteligente de Inventario Tech',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Color(0xFF444653),
-                  ),
+                  style: TextStyle(color: Color(0xFF444653)),
                 ),
 
                 const SizedBox(height: 35),
@@ -106,37 +166,32 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 8),
 
-                const Text(
-                  'Ingresa tus datos para continuar',
-                ),
+                const Text('Selecciona tu tipo de cuenta para continuar'),
 
-                const SizedBox(height: 25),
+                const SizedBox(height: 20),
 
-                // SELECTOR DE PERFIL
-                SegmentedButton<bool>(
+                SegmentedButton<int>(
+                  showSelectedIcon: false,
                   segments: const [
                     ButtonSegment(
-                      value: true,
-                      label: Text('Administrador'),
+                      value: 0,
+                      label: Text('Admin'),
                       icon: Icon(Icons.admin_panel_settings),
                     ),
                     ButtonSegment(
-                      value: false,
+                      value: 1,
                       label: Text('Empleado'),
-                      icon: Icon(Icons.person),
+                      icon: Icon(Icons.badge_outlined),
+                    ),
+                    ButtonSegment(
+                      value: 2,
+                      label: Text('Cliente'),
+                      icon: Icon(Icons.person_outline),
                     ),
                   ],
-                  selected: {esAdministrador},
+                  selected: {rolSeleccionado},
                   onSelectionChanged: (value) {
-                    setState(() {
-                      esAdministrador = value.first;
-
-                      usuarioController.text = esAdministrador
-                          ? 'admin@techstock.com'
-                          : 'lucia@techstock.com';
-
-                      passwordController.clear();
-                    });
+                    cambiarRol(value.first);
                   },
                 ),
 
@@ -144,9 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const Text(
                   'Correo electrónico',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.w600),
                 ),
 
                 const SizedBox(height: 8),
@@ -169,9 +222,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const Text(
                   'Contraseña',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.w600),
                 ),
 
                 const SizedBox(height: 8),
@@ -179,6 +230,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextField(
                   controller: passwordController,
                   obscureText: !mostrarPassword,
+                  onSubmitted: (_) => iniciarSesion(),
                   decoration: InputDecoration(
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
@@ -202,23 +254,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 12),
+                const SizedBox(height: 25),
 
-                CheckboxListTile(
-                  value: recordarSesion,
-                  onChanged: (value) {
-                    setState(() {
-                      recordarSesion = value ?? false;
-                    });
-                  },
-                  title: const Text('Recordar sesión'),
-                  controlAffinity: ListTileControlAffinity.leading,
-                  contentPadding: EdgeInsets.zero,
-                ),
-
-                const SizedBox(height: 20),
-
-                // BOTÓN DE ACCESO
                 SizedBox(
                   height: 54,
                   child: ElevatedButton(
@@ -231,9 +268,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     child: Text(
-                      esAdministrador
+                      rolSeleccionado == 0
                           ? 'Ingresar como Administrador'
-                          : 'Ingresar como Empleado',
+                          : rolSeleccionado == 1
+                              ? 'Ingresar como Empleado'
+                              : 'Ingresar como Cliente',
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
