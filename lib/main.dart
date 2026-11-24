@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'login.dart';
+import 'servicios/api.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  Api.comprobarConexion();
   runApp(const TechStockApp());
 }
 
