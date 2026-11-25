@@ -5,7 +5,6 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const TechStockApp());
 }
-
 class TechStockApp extends StatelessWidget {
   const TechStockApp({super.key});
 
