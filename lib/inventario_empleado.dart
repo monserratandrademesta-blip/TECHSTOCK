@@ -3,7 +3,14 @@ import 'inicio_empleado.dart';
 import 'inventario.dart';
 
 class InventarioEmpleadoScreen extends StatefulWidget {
-  const InventarioEmpleadoScreen({super.key});
+  final int usuarioId;
+  final String nombreEmpleado;
+
+  const InventarioEmpleadoScreen({
+    super.key,
+    required this.usuarioId,
+    required this.nombreEmpleado,
+  });
 
   @override
   State<InventarioEmpleadoScreen> createState() =>
@@ -180,11 +187,13 @@ class _InventarioEmpleadoScreenState
         ],
         onTap: (index) {
           if (index == 0) {
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) =>
-                    const InicioEmpleadoScreen(),
+                builder: (context) => InicioEmpleadoScreen(
+                  usuarioId: widget.usuarioId,
+                  nombreEmpleado: widget.nombreEmpleado,
+                ),
               ),
             );
           }

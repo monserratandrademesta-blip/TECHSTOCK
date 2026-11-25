@@ -3,6 +3,7 @@ import 'login.dart';
 import 'inventario.dart';
 import 'movimientos.dart';
 import 'historial.dart';
+import 'usuarios_admin.dart';
 
 const Color azul = Color(0xFF00288E);
 const Color fondo = Color(0xFFFAF8FF);
@@ -118,6 +119,7 @@ class _InicioScreenState extends State<InicioScreen> {
               style: TextStyle(color: gris, fontSize: 14),
             ),
             const SizedBox(height: 18),
+
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(17),
@@ -158,7 +160,9 @@ class _InicioScreenState extends State<InicioScreen> {
                 ],
               ),
             ),
+
             const SizedBox(height: 22),
+
             const Text(
               'Acciones rápidas',
               style: TextStyle(
@@ -166,7 +170,9 @@ class _InicioScreenState extends State<InicioScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
+
             const SizedBox(height: 12),
+
             Row(
               children: [
                 _accion(
@@ -192,7 +198,27 @@ class _InicioScreenState extends State<InicioScreen> {
                 ),
               ],
             ),
+
+            const SizedBox(height: 15),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  abrirPantalla(const UsuariosAdminScreen());
+                },
+                icon: const Icon(Icons.manage_accounts),
+                label: const Text('Control de usuarios'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: azul,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                ),
+              ),
+            ),
+
             const SizedBox(height: 24),
+
             const Text(
               'Resumen del almacén',
               style: TextStyle(
@@ -200,7 +226,9 @@ class _InicioScreenState extends State<InicioScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
+
             const SizedBox(height: 12),
+
             GridView.count(
               crossAxisCount: 2,
               shrinkWrap: true,
@@ -235,7 +263,9 @@ class _InicioScreenState extends State<InicioScreen> {
                 ),
               ],
             ),
+
             const SizedBox(height: 24),
+
             const Text(
               'Alertas de inventario',
               style: TextStyle(
@@ -243,11 +273,15 @@ class _InicioScreenState extends State<InicioScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
+
             const SizedBox(height: 12),
+
             _alerta('iPhone 15 Pro 128GB', 'Solo quedan 2 unidades'),
             _alerta('MacBook Air M2', 'Solo queda 1 unidad'),
             _alerta('Cargador 65W GaN', 'Solo quedan 3 unidades'),
+
             const SizedBox(height: 24),
+
             const Text(
               'Últimos movimientos',
               style: TextStyle(
@@ -255,13 +289,17 @@ class _InicioScreenState extends State<InicioScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
+
             const SizedBox(height: 12),
+
             _movimiento('AirPods Pro 2', '+15 unidades', true),
             _movimiento('Dell XPS 15', '-2 unidades', false),
+
             const SizedBox(height: 25),
           ],
         ),
       ),
+
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: indiceActual,

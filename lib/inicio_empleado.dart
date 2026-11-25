@@ -7,7 +7,14 @@ const Color azulEmpleado = Color(0xFF00288E);
 const Color fondoEmpleado = Color(0xFFFAF8FF);
 
 class InicioEmpleadoScreen extends StatelessWidget {
-  const InicioEmpleadoScreen({super.key});
+  final int usuarioId;
+  final String nombreEmpleado;
+
+  const InicioEmpleadoScreen({
+    super.key,
+    required this.usuarioId,
+    required this.nombreEmpleado,
+  });
 
   void cerrarSesion(BuildContext context) {
     Navigator.pushAndRemoveUntil(
@@ -70,9 +77,9 @@ class InicioEmpleadoScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Hola, Lucía',
-                style: TextStyle(
+              Text(
+                'Hola, $nombreEmpleado',
+                style: const TextStyle(
                   fontSize: 27,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF131B2E),
@@ -173,7 +180,10 @@ class InicioEmpleadoScreen extends StatelessWidget {
                           context,
                           MaterialPageRoute(
                             builder: (context) =>
-                                InventarioEmpleadoScreen(),
+                                InventarioEmpleadoScreen(
+                                  usuarioId: usuarioId,
+                                  nombreEmpleado: nombreEmpleado,
+                                ),
                           ),
                         );
                       },
@@ -339,7 +349,10 @@ class InicioEmpleadoScreen extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => InventarioEmpleadoScreen(),
+                builder: (context) => InventarioEmpleadoScreen(
+                  usuarioId: usuarioId,
+                  nombreEmpleado: nombreEmpleado,
+                ),
               ),
             );
           }
