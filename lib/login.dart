@@ -16,8 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   bool mostrarPassword = false;
   bool cargando = false;
 
-  final usuarioController =
-      TextEditingController(text: 'admin@techstock.com');
+  final usuarioController = TextEditingController();
   final passwordController = TextEditingController();
 
   String get rol {
@@ -74,7 +73,10 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => const InicioEmpleadoScreen(),
+            builder: (context) => InicioEmpleadoScreen(
+              usuarioId: int.parse(usuario['id'].toString()),
+              nombreEmpleado: usuario['nombre'].toString(),
+            ),
           ),
         );
       } else if (rolUsuario == 'cliente') {
@@ -89,7 +91,9 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } catch (e) {
       if (mounted) {
-        mostrarMensaje(e.toString().replaceFirst('Exception: ', ''));
+        mostrarMensaje(
+          e.toString().replaceFirst('Exception: ', ''),
+        );
       }
     } finally {
       if (mounted) setState(() => cargando = false);
@@ -223,7 +227,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           }
 
                           if (password != confirmar) {
-                            mostrarMensaje('Las contraseñas no coinciden');
+                            mostrarMensaje(
+                              'Las contraseñas no coinciden',
+                            );
                             return;
                           }
 
@@ -244,7 +250,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                             setState(() {
                               rolSeleccionado = 2;
-                              usuarioController.text = correo;
+                              usuarioController.clear();
                               passwordController.clear();
                             });
 
@@ -257,7 +263,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             });
 
                             mostrarMensaje(
-                              e.toString().replaceFirst('Exception: ', ''),
+                              e.toString().replaceFirst(
+                                'Exception: ',
+                                '',
+                              ),
                             );
                           }
                         },

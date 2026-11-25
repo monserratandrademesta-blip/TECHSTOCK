@@ -2,10 +2,16 @@ import 'package:flutter/material.dart';
 
 import 'inicio_empleado.dart';
 import 'inventario_empleado.dart';
-import 'miturno.dart';
 
 class RegistrarSalidaScreen extends StatefulWidget {
-  const RegistrarSalidaScreen({super.key});
+  final int? usuarioId;
+  final String? nombreEmpleado;
+
+  const RegistrarSalidaScreen({
+    super.key,
+    this.usuarioId,
+    this.nombreEmpleado,
+  });
 
   @override
   State<RegistrarSalidaScreen> createState() =>
@@ -49,11 +55,13 @@ class _RegistrarSalidaScreenState extends State<RegistrarSalidaScreen> {
     },
   };
 
-  Map<String, dynamic> get producto => productos[productoSeleccionado]!;
+  Map<String, dynamic> get producto =>
+      productos[productoSeleccionado]!;
 
   int get stockActual => producto['stock'] as int;
 
-  double get total => (producto['precio'] as double) * cantidad;
+  double get total =>
+      (producto['precio'] as double) * cantidad;
 
   @override
   void dispose() {
@@ -125,7 +133,9 @@ class _RegistrarSalidaScreenState extends State<RegistrarSalidaScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Color(0xFF00288E)),
+        iconTheme: const IconThemeData(
+          color: Color(0xFF00288E),
+        ),
         title: const Text(
           'Registrar salida',
           style: TextStyle(
@@ -149,8 +159,11 @@ class _RegistrarSalidaScreenState extends State<RegistrarSalidaScreen> {
                 ),
                 child: const Row(
                   children: [
-                    Icon(Icons.point_of_sale,
-                        color: Color(0xFF00288E), size: 28),
+                    Icon(
+                      Icons.point_of_sale,
+                      color: Color(0xFF00288E),
+                      size: 28,
+                    ),
                     SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -178,15 +191,17 @@ class _RegistrarSalidaScreenState extends State<RegistrarSalidaScreen> {
                   ],
                 ),
               ),
+
               const SizedBox(height: 22),
               _titulo('1. Seleccionar producto'),
               const SizedBox(height: 10),
+
               DropdownButtonFormField<String>(
                 value: productoSeleccionado,
                 isExpanded: true,
                 decoration: _decoracion('Producto'),
                 items: productos.keys.map((nombre) {
-                  return DropdownMenuItem(
+                  return DropdownMenuItem<String>(
                     value: nombre,
                     child: Text(
                       nombre,
@@ -203,7 +218,9 @@ class _RegistrarSalidaScreenState extends State<RegistrarSalidaScreen> {
                   }
                 },
               ),
+
               const SizedBox(height: 12),
+
               Container(
                 padding: const EdgeInsets.all(15),
                 decoration: BoxDecoration(
@@ -224,11 +241,14 @@ class _RegistrarSalidaScreenState extends State<RegistrarSalidaScreen> {
                     const SizedBox(height: 5),
                     Text(
                       'SKU: ${producto['sku']}',
-                      style: const TextStyle(color: Colors.black54),
+                      style: const TextStyle(
+                        color: Colors.black54,
+                      ),
                     ),
                     const SizedBox(height: 10),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           'Precio unitario: \$${(producto['precio'] as double).toStringAsFixed(2)}',
@@ -240,7 +260,9 @@ class _RegistrarSalidaScreenState extends State<RegistrarSalidaScreen> {
                         Text(
                           'Stock: $stockActual',
                           style: TextStyle(
-                            color: stockActual <= 5 ? Colors.red : Colors.green,
+                            color: stockActual <= 5
+                                ? Colors.red
+                                : Colors.green,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -249,9 +271,11 @@ class _RegistrarSalidaScreenState extends State<RegistrarSalidaScreen> {
                   ],
                 ),
               ),
+
               const SizedBox(height: 22),
               _titulo('2. Cantidad a entregar'),
               const SizedBox(height: 10),
+
               Container(
                 padding: const EdgeInsets.all(15),
                 decoration: BoxDecoration(
@@ -264,14 +288,18 @@ class _RegistrarSalidaScreenState extends State<RegistrarSalidaScreen> {
                     const Expanded(
                       child: Text(
                         'Unidades',
-                        style: TextStyle(fontWeight: FontWeight.w600),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                     IconButton(
                       onPressed: cantidad > 1
                           ? () => setState(() => cantidad--)
                           : null,
-                      icon: const Icon(Icons.remove_circle_outline),
+                      icon: const Icon(
+                        Icons.remove_circle_outline,
+                      ),
                     ),
                     Text(
                       '$cantidad',
@@ -292,39 +320,54 @@ class _RegistrarSalidaScreenState extends State<RegistrarSalidaScreen> {
                   ],
                 ),
               ),
+
               const SizedBox(height: 10),
+
               Row(
                 children: [
-                  const Icon(Icons.inventory_2_outlined,
-                      color: Colors.black54, size: 18),
+                  const Icon(
+                    Icons.inventory_2_outlined,
+                    color: Colors.black54,
+                    size: 18,
+                  ),
                   const SizedBox(width: 7),
                   Expanded(
                     child: Text(
                       'Después de la salida quedarán $stockRestante unidades',
                       style: TextStyle(
-                        color: stockRestante < 0 ? Colors.red : Colors.black54,
+                        color: stockRestante < 0
+                            ? Colors.red
+                            : Colors.black54,
                         fontSize: 13,
                       ),
                     ),
                   ),
                 ],
               ),
+
               const SizedBox(height: 22),
               _titulo('3. Información del ticket'),
               const SizedBox(height: 10),
+
               TextFormField(
                 initialValue: ticket,
                 decoration: _decoracion('Número de ticket'),
                 onChanged: (valor) => ticket = valor,
               ),
+
               const SizedBox(height: 12),
+
               TextField(
                 controller: clienteController,
-                decoration: _decoracion('Nombre del cliente (opcional)'),
+                decoration: _decoracion(
+                  'Nombre del cliente (opcional)',
+                ),
               ),
+
               const SizedBox(height: 22),
               _titulo('4. Método de entrega'),
               const SizedBox(height: 10),
+
               DropdownButtonFormField<String>(
                 value: entrega,
                 decoration: _decoracion('Método de entrega'),
@@ -344,15 +387,21 @@ class _RegistrarSalidaScreenState extends State<RegistrarSalidaScreen> {
                   }
                 },
               ),
+
               const SizedBox(height: 22),
               _titulo('5. Notas adicionales'),
               const SizedBox(height: 10),
+
               TextField(
                 controller: notasController,
                 maxLines: 3,
-                decoration: _decoracion('Escribe alguna observación...'),
+                decoration: _decoracion(
+                  'Escribe alguna observación...',
+                ),
               ),
+
               const SizedBox(height: 22),
+
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(17),
@@ -372,12 +421,19 @@ class _RegistrarSalidaScreenState extends State<RegistrarSalidaScreen> {
                       ),
                     ),
                     const SizedBox(height: 14),
-                    _filaResumen('Producto', productoSeleccionado),
-                    _filaResumen('Cantidad', '$cantidad unidades'),
+                    _filaResumen(
+                      'Producto',
+                      productoSeleccionado,
+                    ),
+                    _filaResumen(
+                      'Cantidad',
+                      '$cantidad unidades',
+                    ),
                     _filaResumen('Entrega', entrega),
                     const Divider(height: 22),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment:
+                          MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
                           'Total',
@@ -399,21 +455,30 @@ class _RegistrarSalidaScreenState extends State<RegistrarSalidaScreen> {
                   ],
                 ),
               ),
+
               const SizedBox(height: 18),
-              const Row(
+
+              Row(
                 children: [
-                  Icon(Icons.person_outline, color: Color(0xFF00288E)),
-                  SizedBox(width: 8),
-                  Text(
-                    'Empleado: Lucía Torres · EMP-042',
-                    style: TextStyle(
-                      color: Colors.black54,
-                      fontWeight: FontWeight.w600,
+                  const Icon(
+                    Icons.person_outline,
+                    color: Color(0xFF00288E),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Empleado: ${widget.nombreEmpleado ?? 'Empleado'}',
+                      style: const TextStyle(
+                        color: Colors.black54,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
               ),
+
               const SizedBox(height: 18),
+
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -421,7 +486,9 @@ class _RegistrarSalidaScreenState extends State<RegistrarSalidaScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF00288E),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 16,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(13),
                     ),
@@ -436,54 +503,60 @@ class _RegistrarSalidaScreenState extends State<RegistrarSalidaScreen> {
                   ),
                 ),
               ),
+
               const SizedBox(height: 25),
             ],
           ),
         ),
       ),
-      // Barra agregada (igual a la de Mi turno) para poder navegar. Bórrala si no la quieres.
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 2,
-        selectedItemColor: const Color(0xFF00288E),
-        unselectedItemColor: Colors.grey,
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            label: 'Inicio',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.inventory_2_outlined),
-            label: 'Inventario',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.swap_horiz),
-            label: 'Movimientos',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.access_time),
-            label: 'Mi turno',
-          ),
-        ],
-        onTap: (index) {
-          if (index == 0) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => InicioEmpleadoScreen()),
-            );
-          } else if (index == 1) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => InventarioEmpleadoScreen()),
-            );
-          } else if (index == 3) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => MiTurnoScreen()),
-            );
-          }
-        },
-      ),
+
+      bottomNavigationBar:
+          widget.usuarioId != null &&
+                  widget.nombreEmpleado != null
+              ? BottomNavigationBar(
+                  currentIndex: 2,
+                  selectedItemColor: const Color(0xFF00288E),
+                  unselectedItemColor: Colors.grey,
+                  type: BottomNavigationBarType.fixed,
+                  items: const [
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.home_outlined),
+                      label: 'Inicio',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.inventory_2_outlined),
+                      label: 'Inventario',
+                    ),
+                    BottomNavigationBarItem(
+                      icon: Icon(Icons.swap_horiz),
+                      label: 'Movimientos',
+                    ),
+                  ],
+                  onTap: (index) {
+                    if (index == 0) {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => InicioEmpleadoScreen(
+                            usuarioId: widget.usuarioId!,
+                            nombreEmpleado: widget.nombreEmpleado!,
+                          ),
+                        ),
+                      );
+                    } else if (index == 1) {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => InventarioEmpleadoScreen(
+                            usuarioId: widget.usuarioId!,
+                            nombreEmpleado: widget.nombreEmpleado!,
+                          ),
+                        ),
+                      );
+                    }
+                  },
+                )
+              : null,
     );
   }
 
@@ -505,15 +578,22 @@ class _RegistrarSalidaScreenState extends State<RegistrarSalidaScreen> {
       fillColor: Colors.white,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(13),
-        borderSide: const BorderSide(color: Colors.black12),
+        borderSide: const BorderSide(
+          color: Colors.black12,
+        ),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(13),
-        borderSide: const BorderSide(color: Colors.black12),
+        borderSide: const BorderSide(
+          color: Colors.black12,
+        ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(13),
-        borderSide: const BorderSide(color: Color(0xFF00288E), width: 1.5),
+        borderSide: const BorderSide(
+          color: Color(0xFF00288E),
+          width: 1.5,
+        ),
       ),
     );
   }
@@ -524,12 +604,17 @@ class _RegistrarSalidaScreenState extends State<RegistrarSalidaScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(titulo, style: const TextStyle(color: Colors.black54)),
+          Text(
+            titulo,
+            style: const TextStyle(color: Colors.black54),
+          ),
           Flexible(
             child: Text(
               valor,
               textAlign: TextAlign.right,
-              style: const TextStyle(fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
