@@ -66,7 +66,10 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => const InicioScreen(),
+            builder: (context) => InicioScreen(
+              usuarioId: int.parse(usuario['id'].toString()),
+              nombreAdministrador: usuario['nombre'].toString(),
+            ),
           ),
         );
       } else if (rolUsuario == 'empleado') {
@@ -295,6 +298,8 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void mostrarMensaje(String mensaje) {
+    if (!mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(mensaje),

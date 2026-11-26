@@ -4,11 +4,15 @@ import 'inicio.dart';
 import 'historial.dart';
 
 class MovimientosScreen extends StatefulWidget {
+  final int usuarioId;
+  final String nombreResponsable;
   final String? productoInicial;
   final bool entradaInicial;
 
   const MovimientosScreen({
     super.key,
+    required this.usuarioId,
+    required this.nombreResponsable,
     this.productoInicial,
     this.entradaInicial = true,
   });
@@ -37,13 +41,15 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
 
     final productos = InventarioRepositorio.productos;
 
-    productoSeleccionado = productos.firstWhere(
-      (p) => p.nombre == widget.productoInicial,
-      orElse: () => productos.first,
-    );
+    if (productos.isNotEmpty) {
+      productoSeleccionado = productos.firstWhere(
+        (p) => p.nombre == widget.productoInicial,
+        orElse: () => productos.first,
+      );
 
-    costoController.text =
-        productoSeleccionado.precio.toStringAsFixed(2);
+      costoController.text =
+          productoSeleccionado.precio.toStringAsFixed(2);
+    }
   }
 
   @override
@@ -59,6 +65,11 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
   }
 
   void registrarMovimiento() {
+    if (InventarioRepositorio.productos.isEmpty) {
+      _mensaje('No hay productos disponibles en el inventario.');
+      return;
+    }
+
     final costo = double.tryParse(costoController.text);
 
     if (cantidad < 1) {
@@ -101,7 +112,7 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
                   esEntrada: esEntrada,
                   cantidad: cantidad,
                   costoUnitario: costo,
-                  responsable: 'Carlos Mendoza · Administrador',
+                  responsable: widget.nombreResponsable,
                   referencia: referenciaController.text,
                   destino: proveedor,
                   notas: notasController.text,
@@ -113,9 +124,8 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
                   cantidad = 1;
                   referenciaController.clear();
                   notasController.clear();
-                  proveedor = esEntrada
-                      ? 'Apple Direct'
-                      : 'Venta en tienda';
+                  proveedor =
+                      esEntrada ? 'Apple Direct' : 'Venta en tienda';
                 });
 
                 _mensaje(
@@ -138,6 +148,8 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
   }
 
   void _mensaje(String texto) {
+    if (!mounted) return;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(texto)),
     );
@@ -169,337 +181,343 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
         iconTheme: const IconThemeData(color: azul),
         elevation: 0,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Registrar movimiento',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 7),
-            const Text(
-              'Controla las entradas y salidas de tu inventario.',
-              style: TextStyle(color: Color(0xFF444653)),
-            ),
-            const SizedBox(height: 22),
-
-            Container(
-              padding: const EdgeInsets.all(5),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _tipoMovimiento(
-                      'Entrada',
-                      Icons.arrow_downward,
-                      esEntrada,
-                      () {
-                        setState(() {
-                          esEntrada = true;
-                          cantidad = 1;
-                          proveedor = 'Apple Direct';
-                        });
-                      },
-                    ),
-                  ),
-                  Expanded(
-                    child: _tipoMovimiento(
-                      'Salida / Venta',
-                      Icons.arrow_upward,
-                      !esEntrada,
-                      () {
-                        setState(() {
-                          esEntrada = false;
-                          cantidad = 1;
-                          proveedor = 'Venta en tienda';
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 24),
-            _titulo('Producto seleccionado'),
-
-            DropdownButtonFormField<Producto>(
-              value: productoSeleccionado,
-              isExpanded: true,
-              decoration: _decoracion('Selecciona un producto'),
-              items: productos.map((p) {
-                return DropdownMenuItem(
-                  value: p,
-                  child: Text(
-                    p.nombre,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                );
-              }).toList(),
-              onChanged: (valor) {
-                if (valor != null) {
-                  setState(() {
-                    productoSeleccionado = valor;
-                    cantidad = 1;
-                    costoController.text =
-                        valor.precio.toStringAsFixed(2);
-                  });
-                }
-              },
-            ),
-
-            const SizedBox(height: 12),
-
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-              ),
+      body: productos.isEmpty
+          ? const Center(
+              child: Text('No hay productos disponibles en el inventario.'),
+            )
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'INFORMACIÓN DE INVENTARIO',
+                    'Registrar movimiento',
                     style: TextStyle(
-                      color: Color(0xFF444653),
-                      fontSize: 11,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    productoSeleccionado.nombre,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text('SKU: ${productoSeleccionado.sku}'),
-                  const SizedBox(height: 5),
-                  Text(
-                    'Stock actual: ${productoSeleccionado.stock} unidades',
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 23),
-            _titulo('Cantidad de unidades'),
-
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 15,
-                vertical: 10,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Row(
-                children: [
-                  const Expanded(
-                    child: Text(
-                      'Cantidad',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: cantidad > 1
-                        ? () => setState(() => cantidad--)
-                        : null,
-                    icon: const Icon(Icons.remove_circle_outline),
-                  ),
-                  Text(
-                    '$cantidad',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () {
-                      setState(() {
-                        if (esEntrada ||
-                            cantidad < productoSeleccionado.stock) {
-                          cantidad++;
-                        }
-                      });
-                    },
-                    icon: const Icon(
-                      Icons.add_circle,
-                      color: azul,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 23),
-            _titulo(esEntrada ? 'Proveedor' : 'Destino'),
-
-            DropdownButtonFormField<String>(
-              value: proveedor,
-              decoration: _decoracion('Selecciona una opción'),
-              items: const [
-                DropdownMenuItem(
-                  value: 'Apple Direct',
-                  child: Text('Apple Direct'),
-                ),
-                DropdownMenuItem(
-                  value: 'Almacén Central',
-                  child: Text('Almacén Central'),
-                ),
-                DropdownMenuItem(
-                  value: 'Venta en tienda',
-                  child: Text('Venta en tienda'),
-                ),
-                DropdownMenuItem(
-                  value: 'Venta en línea',
-                  child: Text('Venta en línea'),
-                ),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    proveedor = value;
-                  });
-                }
-              },
-            ),
-
-            const SizedBox(height: 20),
-            _titulo('Referencia del documento'),
-
-            TextField(
-              controller: referenciaController,
-              decoration: _decoracion('Ej. FAC-2026-001'),
-            ),
-
-            const SizedBox(height: 20),
-            _titulo(esEntrada ? 'Costo unitario' : 'Precio unitario'),
-
-            TextField(
-              controller: costoController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              onChanged: (_) => setState(() {}),
-              decoration: _decoracion('\$0.00').copyWith(
-                prefixText: '\$ ',
-              ),
-            ),
-
-            const SizedBox(height: 20),
-            _titulo('Notas adicionales'),
-
-            TextField(
-              controller: notasController,
-              maxLines: 3,
-              decoration: _decoracion(
-                'Escribe alguna observación...',
-              ),
-            ),
-
-            const SizedBox(height: 22),
-
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE2E7FF),
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: Column(
-                children: [
+                  const SizedBox(height: 7),
                   const Text(
-                    'IMPACTO DEL MOVIMIENTO',
-                    style: TextStyle(
-                      color: azul,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                    'Controla las entradas y salidas de tu inventario.',
+                    style: TextStyle(color: Color(0xFF444653)),
+                  ),
+                  const SizedBox(height: 22),
+
+                  Container(
+                    padding: const EdgeInsets.all(5),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _tipoMovimiento(
+                            'Entrada',
+                            Icons.arrow_downward,
+                            esEntrada,
+                            () {
+                              setState(() {
+                                esEntrada = true;
+                                cantidad = 1;
+                                proveedor = 'Apple Direct';
+                              });
+                            },
+                          ),
+                        ),
+                        Expanded(
+                          child: _tipoMovimiento(
+                            'Salida / Venta',
+                            Icons.arrow_upward,
+                            !esEntrada,
+                            () {
+                              setState(() {
+                                esEntrada = false;
+                                cantidad = 1;
+                                proveedor = 'Venta en tienda';
+                              });
+                            },
+                          ),
+                        ),
+                      ],
                     ),
                   ),
+
+                  const SizedBox(height: 24),
+                  _titulo('Producto seleccionado'),
+
+                  DropdownButtonFormField<Producto>(
+                    value: productos.contains(productoSeleccionado)
+                        ? productoSeleccionado
+                        : productos.first,
+                    isExpanded: true,
+                    decoration: _decoracion('Selecciona un producto'),
+                    items: productos.map((p) {
+                      return DropdownMenuItem(
+                        value: p,
+                        child: Text(
+                          p.nombre,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (valor) {
+                      if (valor != null) {
+                        setState(() {
+                          productoSeleccionado = valor;
+                          cantidad = 1;
+                          costoController.text =
+                              valor.precio.toStringAsFixed(2);
+                        });
+                      }
+                    },
+                  ),
+
                   const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Unidades'),
-                      Text('$cantidad'),
-                    ],
+
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(15),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'INFORMACIÓN DE INVENTARIO',
+                          style: TextStyle(
+                            color: Color(0xFF444653),
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          productoSeleccionado.nombre,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        Text('SKU: ${productoSeleccionado.sku}'),
+                        const SizedBox(height: 5),
+                        Text(
+                          'Stock actual: ${productoSeleccionado.stock} unidades',
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
+
+                  const SizedBox(height: 23),
+                  _titulo('Cantidad de unidades'),
+
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 15,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Cantidad',
+                            style: TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: cantidad > 1
+                              ? () => setState(() => cantidad--)
+                              : null,
+                          icon: const Icon(Icons.remove_circle_outline),
+                        ),
+                        Text(
+                          '$cantidad',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () {
+                            setState(() {
+                              if (esEntrada ||
+                                  cantidad < productoSeleccionado.stock) {
+                                cantidad++;
+                              }
+                            });
+                          },
+                          icon: const Icon(
+                            Icons.add_circle,
+                            color: azul,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 23),
+                  _titulo(esEntrada ? 'Proveedor' : 'Destino'),
+
+                  DropdownButtonFormField<String>(
+                    value: proveedor,
+                    decoration: _decoracion('Selecciona una opción'),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'Apple Direct',
+                        child: Text('Apple Direct'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'Almacén Central',
+                        child: Text('Almacén Central'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'Venta en tienda',
+                        child: Text('Venta en tienda'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'Venta en línea',
+                        child: Text('Venta en línea'),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() {
+                          proveedor = value;
+                        });
+                      }
+                    },
+                  ),
+
+                  const SizedBox(height: 20),
+                  _titulo('Referencia del documento'),
+
+                  TextField(
+                    controller: referenciaController,
+                    decoration: _decoracion('Ej. FAC-2026-001'),
+                  ),
+
+                  const SizedBox(height: 20),
+                  _titulo(esEntrada ? 'Costo unitario' : 'Precio unitario'),
+
+                  TextField(
+                    controller: costoController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    onChanged: (_) => setState(() {}),
+                    decoration: _decoracion('\$0.00').copyWith(
+                      prefixText: '\$ ',
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+                  _titulo('Notas adicionales'),
+
+                  TextField(
+                    controller: notasController,
+                    maxLines: 3,
+                    decoration: _decoracion(
+                      'Escribe alguna observación...',
+                    ),
+                  ),
+
+                  const SizedBox(height: 22),
+
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE2E7FF),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Column(
+                      children: [
+                        const Text(
+                          'IMPACTO DEL MOVIMIENTO',
+                          style: TextStyle(
+                            color: azul,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Unidades'),
+                            Text('$cantidad'),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              esEntrada
+                                  ? 'Stock después de la entrada'
+                                  : 'Stock después de la salida',
+                            ),
+                            Text(
+                              '${esEntrada ? productoSeleccionado.stock + cantidad : productoSeleccionado.stock - cantidad}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Total'),
+                            Text(
+                              '\$${total.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                fontSize: 22,
+                                color: azul,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  SizedBox(
+                    width: double.infinity,
+                    height: 55,
+                    child: ElevatedButton.icon(
+                      onPressed: registrarMovimiento,
+                      icon: const Icon(Icons.check_circle_outline),
+                      label: Text(
                         esEntrada
-                            ? 'Stock después de la entrada'
-                            : 'Stock después de la salida',
+                            ? 'Confirmar entrada'
+                            : 'Confirmar salida',
                       ),
-                      Text(
-                        '${esEntrada ? productoSeleccionado.stock + cantidad : productoSeleccionado.stock - cantidad}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: azul,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Total'),
-                      Text(
-                        '\$${total.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 22,
-                          color: azul,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ],
-                  ),
+
+                  const SizedBox(height: 30),
                 ],
               ),
             ),
-
-            const SizedBox(height: 24),
-
-            SizedBox(
-              width: double.infinity,
-              height: 55,
-              child: ElevatedButton.icon(
-                onPressed: registrarMovimiento,
-                icon: const Icon(Icons.check_circle_outline),
-                label: Text(
-                  esEntrada
-                      ? 'Confirmar entrada'
-                      : 'Confirmar salida',
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: azul,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 30),
-          ],
-        ),
-      ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: 2,
@@ -526,10 +544,19 @@ class _MovimientosScreenState extends State<MovimientosScreen> {
         onTap: (index) {
           switch (index) {
             case 0:
-              _irA(const InicioScreen());
+              _irA(
+                InicioScreen(
+                  usuarioId: widget.usuarioId,
+                  nombreAdministrador: widget.nombreResponsable,
+                ),
+              );
               break;
             case 1:
-              _irA(const InventarioScreen());
+              _irA(
+                InventarioScreen(
+                  usuarioId: widget.usuarioId,
+                ),
+              );
               break;
             case 3:
               _irA(const HistorialScreen());

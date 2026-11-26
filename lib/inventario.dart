@@ -111,12 +111,10 @@ class MovimientoInventario {
   double get total => cantidad * costoUnitario;
 }
 
-/// Repositorio compartido: Flutter solamente se comunica con la API Node.
+/// Repositorio compartido: Flutter se comunica con la API Node.
 class InventarioRepositorio {
   InventarioRepositorio._();
 
-  /// Sobrescribe esta URL al ejecutar:
-  /// flutter run --dart-define=API_BASE_URL=http://IP_DE_UBUNTU:3001
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: 'http://10.0.2.2:3001',
@@ -167,10 +165,9 @@ class InventarioRepositorio {
       final mensaje = datos['mensaje'] ?? datos['error'];
       if (mensaje != null) throw ApiException(mensaje.toString());
     }
+
     throw ApiException(
-      'La operación no pudo completarse (' +
-          respuesta.statusCode.toString() +
-          ').',
+      'La operación no pudo completarse (${respuesta.statusCode}).',
     );
   }
 
@@ -179,10 +176,13 @@ class InventarioRepositorio {
       final respuesta = await http
           .get(_uri(ruta), headers: _json)
           .timeout(const Duration(seconds: 15));
+
       final datos = _respuesta(respuesta);
+
       if (datos is! List) {
         throw const ApiException('La API no devolvió una lista válida.');
       }
+
       return datos;
     } on TimeoutException {
       throw const ApiException('La API tardó demasiado en responder.');
@@ -202,6 +202,7 @@ class InventarioRepositorio {
     categorias = respuestas[0]
         .map((e) => Categoria.fromJson(Map<String, dynamic>.from(e as Map)))
         .toList();
+
     productos = respuestas[1]
         .map((e) => Producto.fromJson(Map<String, dynamic>.from(e as Map)))
         .toList();
@@ -238,7 +239,7 @@ class InventarioRepositorio {
     required int categoriaId,
   }) async {
     return _guardarProducto(
-      ruta: '/api/productos/' + producto.id.toString(),
+      ruta: '/api/productos/${producto.id}',
       metodo: 'PUT',
       sku: sku,
       nombre: nombre,
@@ -274,11 +275,14 @@ class InventarioRepositorio {
         'categoria_id': categoriaId,
         'motivo': motivo,
       });
+
       final Future<http.Response> solicitud = metodo == 'POST'
           ? http.post(_uri(ruta), headers: _admin, body: cuerpo)
           : http.put(_uri(ruta), headers: _admin, body: cuerpo);
+
       final respuesta = await solicitud.timeout(const Duration(seconds: 15));
       final datos = Map<String, dynamic>.from(_respuesta(respuesta) as Map);
+
       return Producto.fromJson(
         Map<String, dynamic>.from(datos['producto'] as Map),
       );
@@ -293,10 +297,11 @@ class InventarioRepositorio {
     try {
       final respuesta = await http
           .delete(
-            _uri('/api/productos/' + producto.id.toString()),
+            _uri('/api/productos/${producto.id}'),
             headers: _admin,
           )
           .timeout(const Duration(seconds: 15));
+
       _respuesta(respuesta);
     } on TimeoutException {
       throw const ApiException('La API tardó demasiado en responder.');
@@ -318,6 +323,7 @@ class InventarioRepositorio {
     if (producto.id <= 0) {
       throw const ApiException('El producto no tiene un identificador válido.');
     }
+
     try {
       final respuesta = await http
           .post(
@@ -335,6 +341,7 @@ class InventarioRepositorio {
             }),
           )
           .timeout(const Duration(seconds: 15));
+
       _respuesta(respuesta);
     } on TimeoutException {
       throw const ApiException('La API tardó demasiado en responder.');
@@ -343,7 +350,6 @@ class InventarioRepositorio {
     }
   }
 
-  /// Conserva la interfaz utilizada por movimientos.dart e historial.dart.
   static MovimientoInventario registrarMovimiento({
     required Producto producto,
     required bool esEntrada,
@@ -357,20 +363,26 @@ class InventarioRepositorio {
     if (!productos.contains(producto)) {
       throw ArgumentError('El producto no pertenece al inventario.');
     }
-    if (cantidad <= 0)
+
+    if (cantidad <= 0) {
       throw ArgumentError('La cantidad debe ser mayor que cero.');
+    }
+
     if (!costoUnitario.isFinite || costoUnitario < 0) {
       throw ArgumentError('El costo o precio no es válido.');
     }
+
     if (!esEntrada && cantidad > producto.stock) {
       throw StateError('No hay suficiente inventario para esta salida.');
     }
 
     final anterior = producto.stock;
     final nuevo = esEntrada ? anterior + cantidad : anterior - cantidad;
+
     final folio = esEntrada
-        ? 'ENT-' + (_consecutivoEntrada++).toString()
-        : 'SAL-' + (_consecutivoSalida++).toString();
+        ? 'ENT-${_consecutivoEntrada++}'
+        : 'SAL-${_consecutivoSalida++}';
+
     final movimiento = MovimientoInventario(
       folio: folio,
       tipo: esEntrada ? 'Entrada' : 'Salida',
@@ -389,6 +401,7 @@ class InventarioRepositorio {
 
     producto.stock = nuevo;
     movimientos.insert(0, movimiento);
+
     unawaited(
       registrarMovimientoRemoto(
         producto: producto,
@@ -403,6 +416,7 @@ class InventarioRepositorio {
         debugPrint('No se pudo sincronizar el movimiento: $error');
       }),
     );
+
     return movimiento;
   }
 
@@ -410,7 +424,13 @@ class InventarioRepositorio {
 }
 
 class InventarioScreen extends StatefulWidget {
-  const InventarioScreen({super.key});
+  final int usuarioId;
+
+  const InventarioScreen({
+    super.key,
+    required this.usuarioId,
+  });
+
   @override
   State<InventarioScreen> createState() => _InventarioScreenState();
 }
@@ -429,12 +449,16 @@ class _InventarioScreenState extends State<InventarioScreen> {
 
   Future<void> _cargar() async {
     if (mounted) setState(() => cargando = true);
+
     try {
       await InventarioRepositorio.cargarInventario();
+
       if (!mounted) return;
+
       setState(() {
-        if (!filtros.contains(categoriaSeleccionada))
+        if (!filtros.contains(categoriaSeleccionada)) {
           categoriaSeleccionada = 'Todos';
+        }
         cargando = false;
       });
     } on ApiException catch (e) {
@@ -456,22 +480,27 @@ class _InventarioScreenState extends State<InventarioScreen> {
 
   List<Producto> get productosFiltrados {
     final busqueda = buscarController.text.toLowerCase();
+
     final resultado = InventarioRepositorio.productos.where((producto) {
       final coincideTexto =
           producto.nombre.toLowerCase().contains(busqueda) ||
           producto.sku.toLowerCase().contains(busqueda);
+
       final coincideCategoria =
           categoriaSeleccionada == 'Todos' ||
           (categoriaSeleccionada == 'Bajo Stock'
               ? producto.stock <= 3
               : producto.categoria == categoriaSeleccionada);
+
       return coincideTexto && coincideCategoria;
     }).toList();
+
     resultado.sort(
       (a, b) => ordenarPorPrecio
           ? b.precio.compareTo(a.precio)
           : a.stock.compareTo(b.stock),
     );
+
     return resultado;
   }
 
@@ -511,13 +540,17 @@ class _InventarioScreenState extends State<InventarioScreen> {
       text: producto?.precio.toStringAsFixed(2) ?? '',
     );
     final stock = TextEditingController(text: producto?.stock.toString() ?? '');
+
     Categoria? categoria;
+
     for (final item in InventarioRepositorio.categorias) {
       if (item.id == producto?.categoriaId) categoria = item;
     }
+
     categoria ??= InventarioRepositorio.categorias.isEmpty
         ? null
         : InventarioRepositorio.categorias.first;
+
     var guardando = false;
 
     await showDialog<void>(
@@ -551,8 +584,10 @@ class _InventarioScreenState extends State<InventarioScreen> {
                   ),
                   items: InventarioRepositorio.categorias
                       .map(
-                        (e) =>
-                            DropdownMenuItem(value: e, child: Text(e.nombre)),
+                        (e) => DropdownMenuItem(
+                          value: e,
+                          child: Text(e.nombre),
+                        ),
                       )
                       .toList(),
                   onChanged: InventarioRepositorio.categorias.isEmpty
@@ -575,6 +610,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
                   : () async {
                       final precioIngresado = double.tryParse(precio.text);
                       final stockIngresado = int.tryParse(stock.text);
+
                       if (nombre.text.trim().isEmpty ||
                           sku.text.trim().isEmpty ||
                           precioIngresado == null ||
@@ -589,7 +625,9 @@ class _InventarioScreenState extends State<InventarioScreen> {
                         );
                         return;
                       }
+
                       actualizarDialogo(() => guardando = true);
+
                       try {
                         if (esEdicion) {
                           await InventarioRepositorio.actualizarProducto(
@@ -610,14 +648,18 @@ class _InventarioScreenState extends State<InventarioScreen> {
                             categoriaId: categoria!.id,
                           );
                         }
+
                         await InventarioRepositorio.cargarInventario();
+
                         if (!mounted) return;
+
                         Navigator.pop(contextoDialogo);
                         setState(() {});
+
                         _mensaje(
                           esEdicion
                               ? 'Producto actualizado correctamente.'
-                              : nombre.text.trim() + ' agregado al inventario.',
+                              : '${nombre.text.trim()} agregado al inventario.',
                         );
                       } on ApiException catch (e) {
                         actualizarDialogo(() => guardando = false);
@@ -633,6 +675,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
         ),
       ),
     );
+
     nombre.dispose();
     sku.dispose();
     detalle.dispose();
@@ -645,9 +688,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
       context: context,
       builder: (contextoDialogo) => AlertDialog(
         title: const Text('Eliminar producto'),
-        content: Text(
-          '¿Deseas eliminar ' + producto.nombre + ' del inventario?',
-        ),
+        content: Text('¿Deseas eliminar ${producto.nombre} del inventario?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(contextoDialogo, false),
@@ -664,11 +705,15 @@ class _InventarioScreenState extends State<InventarioScreen> {
         ],
       ),
     );
+
     if (confirmar != true) return;
+
     try {
       await InventarioRepositorio.eliminarProducto(producto);
       await InventarioRepositorio.cargarInventario();
+
       if (!mounted) return;
+
       setState(() {});
       _mensaje('Producto eliminado correctamente.');
     } on ApiException catch (e) {
@@ -684,15 +729,11 @@ class _InventarioScreenState extends State<InventarioScreen> {
       builder: (contextoDialogo) => AlertDialog(
         title: const Text('Detalle del producto'),
         content: Text(
-          producto.nombre +
-              '\n\nCategoría: ' +
-              producto.categoria +
-              '\nSKU: ' +
-              producto.sku +
-              '\nPrecio: \$' +
-              producto.precio.toStringAsFixed(2) +
-              '\nStock actual: ' +
-              producto.stock.toString(),
+          '${producto.nombre}\n\n'
+          'Categoría: ${producto.categoria}\n'
+          'SKU: ${producto.sku}\n'
+          'Precio: \$${producto.precio.toStringAsFixed(2)}\n'
+          'Stock actual: ${producto.stock}',
         ),
         actions: [
           TextButton(
@@ -717,7 +758,13 @@ class _InventarioScreenState extends State<InventarioScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(contextoDialogo);
-              _irA(MovimientosScreen(productoInicial: producto.nombre));
+              _irA(
+                MovimientosScreen(
+                  usuarioId: widget.usuarioId,
+                  nombreResponsable: 'Administrador',
+                  productoInicial: producto.nombre,
+                ),
+              );
             },
             child: const Text('Registrar movimiento'),
           ),
@@ -728,8 +775,9 @@ class _InventarioScreenState extends State<InventarioScreen> {
 
   void _mensaje(String mensaje) {
     if (mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(mensaje)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(mensaje)),
+      );
     }
   }
 
@@ -772,8 +820,12 @@ class _InventarioScreenState extends State<InventarioScreen> {
     );
   }
 
-  void _irA(Widget pantalla) =>
-      Navigator.push(context, MaterialPageRoute(builder: (_) => pantalla));
+  void _irA(Widget pantalla) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => pantalla),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -845,8 +897,7 @@ class _InventarioScreenState extends State<InventarioScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    productosFiltrados.length.toString() +
-                        ' productos encontrados',
+                    '${productosFiltrados.length} productos encontrados',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -863,129 +914,130 @@ class _InventarioScreenState extends State<InventarioScreen> {
             child: cargando
                 ? const Center(child: CircularProgressIndicator())
                 : productosFiltrados.isEmpty
-                ? const Center(child: Text('No se encontraron productos'))
-                : RefreshIndicator(
-                    onRefresh: _cargar,
-                    child: ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                      itemCount: productosFiltrados.length,
-                      itemBuilder: (context, index) {
-                        final producto = productosFiltrados[index];
-                        final critico = producto.stock <= 3;
-                        return Card(
-                          color: Colors.white,
-                          margin: const EdgeInsets.only(bottom: 12),
-                          elevation: 1,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(15),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
+                    ? const Center(child: Text('No se encontraron productos'))
+                    : RefreshIndicator(
+                        onRefresh: _cargar,
+                        child: ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                          itemCount: productosFiltrados.length,
+                          itemBuilder: (context, index) {
+                            final producto = productosFiltrados[index];
+                            final critico = producto.stock <= 3;
+
+                            return Card(
+                              color: Colors.white,
+                              margin: const EdgeInsets.only(bottom: 12),
+                              elevation: 1,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(15),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Container(
-                                      width: 48,
-                                      height: 48,
-                                      decoration: BoxDecoration(
-                                        color: const Color(0xFFE2E7FF),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: const Icon(
-                                        Icons.devices,
-                                        color: azul,
-                                        size: 27,
+                                    Row(
+                                      children: [
+                                        Container(
+                                          width: 48,
+                                          height: 48,
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFE2E7FF),
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: const Icon(
+                                            Icons.devices,
+                                            color: azul,
+                                            size: 27,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                producto.nombre,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 15,
+                                                ),
+                                              ),
+                                              Text(
+                                                producto.detalle,
+                                                style: const TextStyle(
+                                                  color: Color(0xFF444653),
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        IconButton(
+                                          onPressed: () => _detalle(producto),
+                                          icon: const Icon(Icons.info_outline),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 15),
+                                    Text(
+                                      'SKU: ${producto.sku}',
+                                      style: const TextStyle(
+                                        fontSize: 11,
+                                        color: Color(0xFF444653),
                                       ),
                                     ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            producto.nombre,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 15,
-                                            ),
+                                    const SizedBox(height: 10),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          '\$${producto.precio.toStringAsFixed(2)}',
+                                          style: const TextStyle(
+                                            color: azul,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
                                           ),
-                                          Text(
-                                            producto.detalle,
-                                            style: const TextStyle(
-                                              color: Color(0xFF444653),
-                                              fontSize: 12,
-                                            ),
+                                        ),
+                                        Text(
+                                          'Stock: ${producto.stock}',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                        Text(
+                                          critico ? 'Crítico' : 'Disponible',
+                                          style: TextStyle(
+                                            color: critico
+                                                ? Colors.red
+                                                : Colors.green,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    IconButton(
-                                      onPressed: () => _detalle(producto),
-                                      icon: const Icon(Icons.info_outline),
+                                    const SizedBox(height: 12),
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: ElevatedButton(
+                                        onPressed: () => _detalle(producto),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: azul,
+                                          foregroundColor: Colors.white,
+                                        ),
+                                        child: const Text('Detalle'),
+                                      ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 15),
-                                Text(
-                                  'SKU: ' + producto.sku,
-                                  style: const TextStyle(
-                                    fontSize: 11,
-                                    color: Color(0xFF444653),
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      '\$' + producto.precio.toStringAsFixed(2),
-                                      style: const TextStyle(
-                                        color: azul,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                      ),
-                                    ),
-                                    Text(
-                                      'Stock: ' + producto.stock.toString(),
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    Text(
-                                      critico ? 'Crítico' : 'Disponible',
-                                      style: TextStyle(
-                                        color: critico
-                                            ? Colors.red
-                                            : Colors.green,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: ElevatedButton(
-                                    onPressed: () => _detalle(producto),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: azul,
-                                      foregroundColor: Colors.white,
-                                    ),
-                                    child: const Text('Detalle'),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
           ),
         ],
       ),
@@ -1002,7 +1054,10 @@ class _InventarioScreenState extends State<InventarioScreen> {
         selectedItemColor: azul,
         unselectedItemColor: const Color(0xFF444653),
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Inicio'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard),
+            label: 'Inicio',
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.inventory),
             label: 'Inventario',
@@ -1017,9 +1072,27 @@ class _InventarioScreenState extends State<InventarioScreen> {
           ),
         ],
         onTap: (index) {
-          if (index == 0) _irA(const InicioScreen());
-          if (index == 2) _irA(const MovimientosScreen());
-          if (index == 3) _irA(const HistorialScreen());
+          if (index == 0) {
+            _irA(
+              InicioScreen(
+                usuarioId: widget.usuarioId,
+                nombreAdministrador: 'Administrador',
+              ),
+            );
+          }
+
+          if (index == 2) {
+            _irA(
+              MovimientosScreen(
+                usuarioId: widget.usuarioId,
+                nombreResponsable: 'Administrador',
+              ),
+            );
+          }
+
+          if (index == 3) {
+            _irA(const HistorialScreen());
+          }
         },
       ),
     );

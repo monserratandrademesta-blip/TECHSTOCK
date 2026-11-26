@@ -10,7 +10,14 @@ const Color fondo = Color(0xFFFAF8FF);
 const Color gris = Color(0xFF444653);
 
 class InicioScreen extends StatefulWidget {
-  const InicioScreen({super.key});
+  final int usuarioId;
+  final String nombreAdministrador;
+
+  const InicioScreen({
+    super.key,
+    required this.usuarioId,
+    required this.nombreAdministrador,
+  });
 
   @override
   State<InicioScreen> createState() => _InicioScreenState();
@@ -41,12 +48,22 @@ class _InicioScreenState extends State<InicioScreen> {
       case 0:
         setState(() => indiceActual = 0);
         break;
+
       case 1:
-        abrirPantalla(const InventarioScreen());
+        abrirPantalla(
+          InventarioScreen(usuarioId: widget.usuarioId),
+        );
         break;
+
       case 2:
-        abrirPantalla(const MovimientosScreen());
+        abrirPantalla(
+          MovimientosScreen(
+            usuarioId: widget.usuarioId,
+            nombreResponsable: widget.nombreAdministrador,
+          ),
+        );
         break;
+
       case 3:
         abrirPantalla(const HistorialScreen());
         break;
@@ -74,12 +91,12 @@ class _InicioScreenState extends State<InicioScreen> {
           ],
         ),
         actions: [
-          const Padding(
-            padding: EdgeInsets.only(right: 4),
+          Padding(
+            padding: const EdgeInsets.only(right: 4),
             child: Center(
               child: Text(
                 'Admin',
-                style: TextStyle(
+                style: const TextStyle(
                   color: gris,
                   fontWeight: FontWeight.w600,
                 ),
@@ -107,9 +124,9 @@ class _InicioScreenState extends State<InicioScreen> {
               ),
             ),
             const SizedBox(height: 5),
-            const Text(
-              'Hola, Carlos',
-              style: TextStyle(
+            Text(
+              'Hola, ${widget.nombreAdministrador}',
+              style: const TextStyle(
                 fontSize: 23,
                 fontWeight: FontWeight.w700,
               ),
@@ -179,7 +196,11 @@ class _InicioScreenState extends State<InicioScreen> {
                   Icons.add_box,
                   '+ Entrada',
                   () => abrirPantalla(
-                    const MovimientosScreen(entradaInicial: true),
+                    MovimientosScreen(
+                      usuarioId: widget.usuarioId,
+                      nombreResponsable: widget.nombreAdministrador,
+                      entradaInicial: true,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -187,14 +208,20 @@ class _InicioScreenState extends State<InicioScreen> {
                   Icons.remove_circle,
                   '- Salida',
                   () => abrirPantalla(
-                    const MovimientosScreen(entradaInicial: false),
+                    MovimientosScreen(
+                      usuarioId: widget.usuarioId,
+                      nombreResponsable: widget.nombreAdministrador,
+                      entradaInicial: false,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 10),
                 _accion(
                   Icons.category,
                   'Categorías',
-                  () => abrirPantalla(const InventarioScreen()),
+                  () => abrirPantalla(
+                    InventarioScreen(usuarioId: widget.usuarioId),
+                  ),
                 ),
               ],
             ),
