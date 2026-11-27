@@ -70,9 +70,15 @@ class PedidosRepositorio {
 // --------------------------------------------------
 // INICIO DEL CLIENTE
 // --------------------------------------------------
-
 class ClienteScreen extends StatefulWidget {
-  const ClienteScreen({super.key});
+  final int usuarioId;
+  final String nombreCliente;
+
+  const ClienteScreen({
+    super.key,
+    required this.usuarioId,
+    required this.nombreCliente,
+  });
 
   @override
   State<ClienteScreen> createState() => _ClienteScreenState();

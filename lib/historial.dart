@@ -1,6 +1,6 @@
 
 import 'package:flutter/material.dart';
-import 'api.dart';
+import 'servicios/api.dart';
 
 class HistorialScreen extends StatefulWidget {
   const HistorialScreen({super.key});
@@ -536,16 +536,6 @@ class _HistorialScreenState extends State<HistorialScreen> {
         ],
       ),
     );
-  }
-
-  String formatoFecha(DateTime fecha) {
-    final dia = fecha.day.toString().padLeft(2, '0');
-    final mes = fecha.month.toString().padLeft(2, '0');
-    final anio = fecha.year;
-    final hora = fecha.hour.toString().padLeft(2, '0');
-    final minuto = fecha.minute.toString().padLeft(2, '0');
-
-    return '$dia/$mes/$anio · $hora:$minuto';
   }
 }
 
